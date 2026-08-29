@@ -264,6 +264,18 @@ window.eaglercraftXOptsHints = {
     // Com isso, o botão Voltar do navegador retorna ao GameHub, não ao seletor.
     window.gameHubHomeUrl = new URL('../index.html', window.location.href).href;
 </script>
+
+<style id="gamehub-touch-style">
+  html, body, canvas, img, a, button, input, select, textarea, div {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+  ::selection { background: transparent !important; color: inherit !important; }
+  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
+</style>
 </head>
 <body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:white;" id="game_frame">
 <div style="margin:0px;width:100%;height:100%;font-family:sans-serif;display:flex;align-items:center;user-select:none;" id="launch_countdown_screen">

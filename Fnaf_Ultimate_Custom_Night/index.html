@@ -128,6 +128,18 @@
     
 <!-- Fullscreen is controlled by the GameHub player. -->
 
+
+<style id="gamehub-touch-style">
+  html, body, canvas, img, a, button, input, select, textarea, div {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+  ::selection { background: transparent !important; color: inherit !important; }
+  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
+</style>
 </head>
 
 <body>

@@ -43,6 +43,18 @@
 
 
   <link rel="stylesheet" href="../gamehub-loading-theme.css">
+
+<style id="gamehub-touch-style">
+  html, body, canvas, img, a, button, input, select, textarea, div {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+  ::selection { background: transparent !important; color: inherit !important; }
+  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
+</style>
 </head>
 <body style="margin:0; background:#000; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden">
   <base href="https://cdn.jsdelivr.net/gh/web-ports/pvz@latest/">
