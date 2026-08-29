@@ -59,8 +59,8 @@
 <body style="margin:0; background:#000; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden">
   <base href="https://cdn.jsdelivr.net/gh/web-ports/pvz@latest/">
   
-  <div id="loading-ui" class="gamehub-loading" data-loading-style="garden" style="--gamehub-load-accent: #8fda51;">
-      <div id="status-text">LOADING...</div>
+  <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;">
+      <div id="status-text">Loading game...</div>
       <div id="bar-container"><div id="bar-fill"></div></div>
   </div>
   
@@ -114,7 +114,7 @@
         chunks.push(value);
         let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
         let mbTotal = '43.34';
-        statusText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+        statusText.textContent = `Loading game... ${mbDone} MB / ${mbTotal} MB`;
         barFill.style.width = `${(loadedBytes / (43.34 * 1024 * 1024)) * 100}%`;
       }
       let fullBuffer = new Uint8Array(received);
