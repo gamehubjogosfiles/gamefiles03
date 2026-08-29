@@ -32,15 +32,13 @@
 
 
 <style id="gamehub-touch-style">
-  html, body, canvas, img, a, button, input, select, textarea, div {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-  }
-  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+  html, body, body * { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
+  html, body, canvas { -webkit-touch-callout: none !important; touch-action: manipulation; }
+  html, body, canvas, img, a, button, iframe, [role="button"] { -webkit-user-select: none !important; user-select: none !important; }
+  input, textarea, select, [contenteditable="true"] { -webkit-user-select: text !important; user-select: text !important; }
+  *, *::before, *::after { outline: 0 !important; -webkit-focus-ring-color: transparent !important; }
+  *:focus, *:focus-visible, canvas:active, canvas:focus { outline: 0 !important; box-shadow: none !important; }
   ::selection { background: transparent !important; color: inherit !important; }
-  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
 </style>
 </head>
 <body>
@@ -61,5 +59,15 @@
         });
     </script>
 
-</body>
+<script id="gamehub-touch-behavior">
+(() => {
+  const clearTransientTouchState = () => {
+    if (window.getSelection) window.getSelection().removeAllRanges();
+    const active = document.activeElement;
+    if (active && active !== document.body && !/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) active.blur();
+  };
+  document.addEventListener('pointerup', clearTransientTouchState, { capture: true, passive: true });
+  document.addEventListener('touchend', clearTransientTouchState, { capture: true, passive: true });
+})();
+</script></body>
 </html>
