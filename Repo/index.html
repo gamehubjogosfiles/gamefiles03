@@ -5,22 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>R.E.P.O.</title>
   <link rel="icon" href="favicon.ico">
-  <script>
-(function () {
-  const isMobile = /iPhone|iPad|iPod|Android|Mobile|Tablet/i.test(navigator.userAgent);
-  if (!isMobile) return;
-  function enableFullscreen() {
-    const root = document.documentElement;
-    const request = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
-    if (request && !document.fullscreenElement && !document.webkitFullscreenElement) {
-      request.call(root).catch(() => {});
-    }
-  }
-  ['touchstart', 'click', 'keydown'].forEach((eventName) => {
-    window.addEventListener(eventName, enableFullscreen, { once: true, passive: eventName === 'touchstart' });
-  });
-})();
-</script>
+  
+<!-- Fullscreen is controlled by the GameHub player. -->
+
   <style>
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #111; color: #fff; font-family: Arial, sans-serif; }

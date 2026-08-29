@@ -31,27 +31,9 @@
 
   <script src="ruffle.js"></script>
   
-<script>
-(() => {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (!isMobile) return;
-  const enterFullscreen = () => {
-    const root = document.documentElement;
-    const request = root.requestFullscreen || root.mozRequestFullScreen || root.webkitRequestFullScreen || root.msRequestFullscreen;
-    if (request && !document.fullscreenElement && !document.webkitFullscreenElement) {
-      Promise.resolve(request.call(root)).catch(() => {});
-    }
-  };
-  const updateOrientation = () => {
-    const notice = document.getElementById('orientation');
-    if (notice) notice.style.display = window.matchMedia('(orientation: portrait)').matches ? 'block' : 'none';
-  };
-  ['touchstart', 'click', 'keydown'].forEach((eventName) => window.addEventListener(eventName, enterFullscreen, { once: true }));
-  window.addEventListener('orientationchange', updateOrientation);
-  window.addEventListener('resize', updateOrientation);
-  document.addEventListener('DOMContentLoaded', updateOrientation);
-})();
-</script>
+
+<!-- Fullscreen is controlled by the GameHub player. -->
+
 </head>
 <body>
   

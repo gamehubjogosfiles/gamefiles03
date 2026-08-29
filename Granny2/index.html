@@ -18,18 +18,9 @@
     #unityContainer canvas { display: block; background: #000; outline: none; }
     #loading-ui { position: fixed; inset: 0; z-index: 10; width: auto; text-align: center; pointer-events: none; }
   </style>
-  <script>
-    (() => {
-      const isMobile = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);
-      if (!isMobile) return;
-      const enableFullscreen = () => {
-        const root = document.documentElement;
-        const request = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
-        if (request && !document.fullscreenElement && !document.webkitFullscreenElement) Promise.resolve(request.call(root)).catch(() => {});
-      };
-      ['touchstart', 'click', 'keydown'].forEach(eventName => window.addEventListener(eventName, enableFullscreen, { once: true, passive: eventName === 'touchstart' }));
-    })();
-  </script>
+  
+<!-- Fullscreen is controlled by the GameHub player. -->
+
 </head>
 <body>
   <div class="webgl-content"><div id="unityContainer"></div></div>
