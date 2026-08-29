@@ -24,7 +24,7 @@ html, body { background: #000; }
   width: 38px !important;
   height: 38px !important;
   border: 3px solid #303030 !important;
-  border-top-color: #ffd400 !important;
+  border-top-color: var(--gamehub-spinner-color, #ffd400) !important;
   border-radius: 50% !important;
   animation: gamehub-loading-spin .8s linear infinite !important;
   content: "" !important;
@@ -54,7 +54,7 @@ html, body { background: #000; }
   height: 100% !important;
   border: 0 !important;
   border-radius: inherit !important;
-  background: #ffd400 !important;
+  background: var(--gamehub-spinner-color, #ffd400) !important;
   transition: width .16s linear !important;
 }
 .gamehub-loading #progress,
