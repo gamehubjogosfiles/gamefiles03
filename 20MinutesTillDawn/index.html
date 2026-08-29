@@ -1,193 +1,155 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-    
-<!-- Fullscreen is controlled by the GameHub player. -->
-
-    <link rel="icon" type="image/png" href="favicon.ico">
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-    <title>20 Minutes Till Dawn</title>
-    
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #111;
-            color: #fff;
-            font-family: sans-serif;
-        }
-        #unity-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: #000;
-        }
-        #unity-canvas {
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
-        #loading-ui {
-            position: absolute;
-            text-align: center;
-            width: 300px;
-            z-index: 10;
-        }
-        #bar-container {
-            width: 100%;
-            height: 6px;
-            background: #333;
-            margin-top: 10px;
-            border-radius: 3px;
-        }
-        #bar-fill {
-            width: 0%;
-            height: 100%;
-            background: #eee;
-            border-radius: 3px;
-            transition: width 0.1s;
-        }
-        #status-text {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-    </style>
-    
-
-
+  <!-- Fullscreen is controlled by the GameHub player. -->
+  <link rel="icon" type="image/png" href="favicon.ico">
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+  <title>20 Minutes Till Dawn</title>
+  <link rel="stylesheet" href="TemplateData/style.css">
   <link rel="stylesheet" href="../gamehub-loading-theme.css">
-
-<style id="gamehub-touch-style">
-  html, body, canvas, img, a, button, input, select, textarea, div {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-  }
-  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
-  ::selection { background: transparent !important; color: inherit !important; }
-  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
-</style>
+  <style id="gamehub-touch-style">
+    html, body, canvas, img, a, button, input, select, textarea, div {
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+    *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+    ::selection { background: transparent !important; color: inherit !important; }
+    :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
+  </style>
 </head>
 <body>
-    <div id="unity-container">
-        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-        <div id="loading-ui" class="gamehub-loading" data-loading-style="dawn" style="--gamehub-load-accent: #9ae66e;">
-            <div id="status-text">loading data</div>
-            <div id="bar-container"><div id="bar-fill"></div></div>
-        </div>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+    <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;" role="status" aria-live="polite">
+      <div id="status-text">Loading game...</div>
+      <div id="bar-container"><div id="bar-fill"></div></div>
+      <div id="progress-detail">Preparing game files...</div>
+      <div id="error-box" role="alert"></div>
     </div>
-    <script>
-        let loadedBytes = 0;
-        const totalSize = 57.65; // MB
+  </div>
+  <script>
+    let loadedBytes = 0;
+    const statusText = document.querySelector('#status-text');
+    const progressDetail = document.querySelector('#progress-detail');
+    const barFill = document.querySelector('#bar-fill');
+    const loadingUI = document.querySelector('#loading-ui');
+    const errorBox = document.querySelector('#error-box');
 
-        const statusText = document.querySelector("#status-text");
-        const barFill = document.querySelector("#bar-fill");
-        const loadingUI = document.querySelector("#loading-ui");
+    function notifyParent(state, message) {
+      if (window.parent !== window) {
+        window.parent.postMessage({ gamehub: 'game-status', state: state, message: message || '' }, '*');
+      }
+    }
 
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
-            const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
-            const contentLength = response.headers.get('Content-Length');
-            const total = contentLength ? parseInt(contentLength, 10) : totalSize * 1024 * 1024;
+    function setStatus(label, detail, progress) {
+      statusText.textContent = label;
+      progressDetail.textContent = detail || '';
+      if (typeof progress === 'number') barFill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+    }
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                received += value.length;
-                loadedBytes += value.length;
-                chunks.push(value);
-                
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                statusText.textContent = `loading... ${mbDone} MB / ${totalSize} MB`;
-                barFill.style.width = Math.min(95, (loadedBytes / (totalSize * 1024 * 1024) * 100)) + "%";
-            }
-            let fullBuffer = new Uint8Array(received);
-            let offset = 0;
-            for (let chunk of chunks) {
-                fullBuffer.set(chunk, offset);
-                offset += chunk.length;
-            }
-            return fullBuffer.buffer;
+    async function fetchWithProgress(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Unable to load ${url} (${response.status})`);
+      if (!response.body || !response.body.getReader) return response.arrayBuffer();
+      const reader = response.body.getReader();
+      const chunks = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        received += value.length;
+        loadedBytes += value.length;
+        chunks.push(value);
+        setStatus('Loading game...', `Preparing game files (${(loadedBytes / (1024 * 1024)).toFixed(1)} MB)`, 18);
+      }
+      const fullBuffer = new Uint8Array(received);
+      let offset = 0;
+      for (const chunk of chunks) {
+        fullBuffer.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return fullBuffer.buffer;
+    }
+
+    async function mergeFiles(fileParts) {
+      const buffers = await Promise.all(fileParts.map(fetchWithProgress));
+      return URL.createObjectURL(new Blob(buffers));
+    }
+
+    function getParts(file, count) {
+      return Array.from({ length: count }, (_, index) => `${file}.part${index + 1}`);
+    }
+
+    const canvas = document.querySelector('#unity-canvas');
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const container = document.querySelector('#unity-container');
+
+    (async () => {
+      try {
+        notifyParent('loading');
+        setStatus('Loading game...', 'Preparing game files...', 8);
+        const [dataUrl, wasmUrl] = await Promise.all([
+          mergeFiles(getParts('Build/20minutes.data', 2)),
+          mergeFiles(getParts('Build/20minutes.wasm', 2))
+        ]);
+        setStatus('Loading game...', 'Starting game engine...', 42);
+
+        const loaderUrl = 'Build/20minutes.loader.js';
+        const config = {
+          dataUrl: dataUrl,
+          frameworkUrl: 'Build/20minutes.framework.js',
+          codeUrl: wasmUrl,
+          streamingAssetsUrl: 'StreamingAssets',
+          companyName: 'DefaultCompany',
+          productName: '20 Minutes Till Dawn',
+          productVersion: '1.0'
+        };
+
+        if (isMobile) {
+          container.className = 'unity-mobile';
+          config.devicePixelRatio = 1;
+        } else {
+          function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+          }
+          resizeCanvas();
+          window.addEventListener('resize', resizeCanvas);
         }
 
-        async function mergeFiles(fileParts) {
-            const buffers = await Promise.all(
-                fileParts.map(part => fetchWithProgress(part))
-            );
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
-        }
-
-        function getParts(file, count) {
-            let parts = [];
-            for (let i = 1; i <= count; i++) {
-                parts.push(file + ".part" + i);
-            }
-            return parts;
-        }
-
-        const canvas = document.querySelector("#unity-canvas");
-
-        (async () => {
-            const [dataUrl, wasmUrl] = await Promise.all([
-                mergeFiles(getParts("Build/20minutes.data", 2)),
-                mergeFiles(getParts("Build/20minutes.wasm", 2)),
-            ]);
-            var buildUrl = "Build";
-            var loaderUrl = buildUrl + "/20minutes.loader.js";
-            var config = {
-                dataUrl: dataUrl,
-                frameworkUrl: "Build/20minutes.framework.js",
-                codeUrl: wasmUrl,
-                streamingAssetsUrl: "StreamingAssets",
-                companyName: "DefaultCompany",
-                productName: "20 Minutes Till Dawn",
-                productVersion: "1.0",
-            };
-            var container = document.querySelector("#unity-container");
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                container.className = "unity-mobile";
-                config.devicePixelRatio = 1;
-            } else {
-                function resizeCanvas() {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                    canvas.style.width = window.innerWidth + "px";
-                    canvas.style.height = window.innerHeight + "px";
-                }
-                resizeCanvas();
-                window.addEventListener('resize', resizeCanvas);
-            }
-            var script = document.createElement("script");
-            script.src = loaderUrl;
-            script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                    barFill.style.width = (100 * progress) + "%";
-                    statusText.textContent = "loading";
-                }).then((unityInstance) => {
-                    loadingUI.style.display = "none";
-                }).catch((message) => {
-                    alert(message);
-                });
-            };
-            script.onerror = () => {
-                statusText.textContent = "Failed to load the game loader.";
-                console.error("Could not load:", loaderUrl);
-            };
-            document.body.appendChild(script);
-        })();
-    </script>
+        const script = document.createElement('script');
+        script.src = loaderUrl;
+        script.onload = () => {
+          setStatus('Loading game...', 'Initializing game engine...', 68);
+          createUnityInstance(canvas, config, (progress) => {
+            setStatus('Loading game...', 'Initializing game engine...', 68 + (progress * 30));
+          }).then(() => {
+            barFill.style.width = '100%';
+            notifyParent('ready');
+            loadingUI.style.display = 'none';
+          }).catch((error) => {
+            throw error;
+          });
+        };
+        script.onerror = () => {
+          throw new Error('Unable to load the game loader.');
+        };
+        document.body.appendChild(script);
+      } catch (error) {
+        const message = error && error.message ? error.message : 'Unable to load the game.';
+        setStatus('Unable to load the game.', 'Please try again later.', 0);
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+        notifyParent('error', message);
+        console.error(error);
+      }
+    })();
+  </script>
 </body>
 </html>
