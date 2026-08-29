@@ -39,6 +39,7 @@
     const errorBox = document.getElementById('error-box');
     const TOTAL_DATA_BYTES = 319483028;
     let loadedBytes = 0;
+    const notifyParent = (state, message) => { if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*'); };
 
     const formatMB = bytes => `${(bytes / 1048576).toFixed(2)} MB`;
     const updateProgress = message => {
@@ -92,6 +93,7 @@
       statusText.textContent = 'Could not start Granny 2';
       errorBox.textContent = 'Refresh the page to try again.';
       errorBox.style.display = 'block';
+      notifyParent('error', 'Could not start Granny 2');
     }
 
     (async () => {
@@ -112,6 +114,7 @@
             statusText.textContent = progress >= 1 ? 'Ready' : 'Starting game';
             if (progress >= 1 && !gameReady) {
               gameReady = true;
+              notifyParent('ready');
               setTimeout(() => { loadingUI.style.display = 'none'; }, 250);
             }
           }
