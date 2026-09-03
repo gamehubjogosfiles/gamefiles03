@@ -1,1 +1,31 @@
-<meta http-equiv="Refresh" content="0; url='RSDKv5.html'" />
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Sonic Mania</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
+    #game { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+    #loader { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; align-content: center; gap: 14px; color: #fff; background: #000; font: 700 16px/1.3 Arial, sans-serif; text-align: center; }
+    #loader.hidden { display: none; }
+    #spinner { width: 34px; height: 34px; border: 4px solid #444; border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <iframe id="game" src="RSDKv5.html" title="Sonic Mania" allow="autoplay; gamepad; pointer-lock; fullscreen" allowfullscreen></iframe>
+  <div id="loader" role="status" aria-live="polite"><div id="spinner" aria-hidden="true"></div><div>Loading...</div></div>
+  <script>
+    (function () {
+      var frame = document.getElementById('game');
+      var loader = document.getElementById('loader');
+      frame.addEventListener('load', function () { window.setTimeout(function () { loader.className = 'hidden'; }, 700); }, { once: true });
+    }());
+  </script>
+</body>
+</html>
