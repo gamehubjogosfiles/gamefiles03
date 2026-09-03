@@ -3,7 +3,7 @@
 <!--suppress HtmlFormInputWithoutLabel, JSDeprecatedSymbols -->
 <html lang="en-us">
 	<head>
-<script id="gamehub-fullscreen-first">(function(){'use strict';function enter(){var root=document.documentElement,request=root.requestFullscreen||root.webkitRequestFullscreen||root.mozRequestFullScreen||root.msRequestFullscreen;if(!document.fullscreenElement&&request){try{var p=request.call(root,{navigationUI:'hide'});if(p&&p.catch)p.catch(function(){});}catch(e){}}}document.addEventListener('pointerdown',enter,{passive:true});document.addEventListener('touchstart',enter,{passive:true});})();</script><style id="gamehub-loading-fix">html,body{width:100%;height:100%;min-height:100%;margin:0!important;padding:0!important;background:#000!important;overflow:hidden!important;}body{display:flex;align-items:center;justify-content:center;}canvas{display:block;max-width:100vw;max-height:100vh;margin:0 auto;}#status,#loading-text{color:#fff!important;text-align:center;}#spinner{margin-left:auto!important;margin-right:auto!important;}progress{accent-color:#fff;}</style>
+
 		<meta charset="utf-8" />
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -38,12 +38,14 @@
 				image-rendering: pixelated;
 			}
 
-			.spinner {
-				height: 30px;
-				width: 30px;
-				margin: 20px 0 0 20px;
-				display: inline-block;
-				vertical-align: top;
+				.spinner {
+					height: 30px;
+					width: 30px;
+					margin: 0;
+					position: fixed;
+					top: calc(50% - 60px);
+					left: calc(50% - 15px);
+					z-index: 5;
 
 				-webkit-animation: rotation .8s linear infinite;
 				-moz-animation: rotation .8s linear infinite;
@@ -56,7 +58,7 @@
 				border-top: 5px solid rgb(120, 120, 120);
 
 				border-radius: 100%;
-				background-color: rgb(189, 215, 46);
+					background-color: #000;
 			}
 
 			@-webkit-keyframes rotation {
@@ -96,17 +98,25 @@
 			}
 
 			#status {
-				display: inline-block;
-				vertical-align: top;
-				margin-top: 30px;
-				margin-left: 20px;
+				display: block;
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				z-index: 5;
+				margin: 0;
+				transform: translateX(-50%);
 				font-weight: bold;
 				color: rgb(120, 120, 120);
 			}
 
 			#progress {
+				position: fixed;
+				top: calc(50% + 34px);
+				left: 50%;
+				z-index: 5;
+				transform: translateX(-50%);
 				height: 20px;
-				width: 300px;
+				width: min(300px, 80vw);
 			}
 
 			#output {
@@ -129,8 +139,8 @@
 		<link rel="icon" type="image/png" href="favicon.png" />
 </head>
 	<body>
-		<div class="spinner" id="spinner" style="display: none;"></div>
-		<div id="status" style="display: none;">Downloading...</div>
+<div class="spinner" id="spinner"></div>
+			<div id="status">Downloading...</div>
 		<progress id="progress" value="0" max="100" hidden="hidden"></progress>
 		<canvas id="canvas" onclick="window.focus();" oncontextmenu="event.preventDefault();"></canvas>
 		<textarea id="output" style="display: none;" rows="8"></textarea>

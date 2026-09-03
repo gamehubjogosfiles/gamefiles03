@@ -10,45 +10,24 @@
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; background: #000; overflow: hidden; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
     body { position: relative; }
-    #app, canvas, iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-    canvas { display: block; max-width: 100vw; max-height: 100vh; margin: auto; }
-    #gamehub-loader {
-      position: fixed; inset: 0; z-index: 10; display: grid; place-items: center;
-      gap: 14px; align-content: center; color: #fff; background: #000;
-      font: 700 16px/1.3 Arial, sans-serif; text-align: center;
-    }
-    #gamehub-loader.is-hidden { display: none; }
-    #gamehub-spinner {
-      width: 34px; height: 34px; border: 4px solid #444; border-top-color: #fff;
-      border-radius: 50%; animation: gamehub-spin .8s linear infinite;
-    }
-    @keyframes gamehub-spin { to { transform: rotate(360deg); } }
+    #canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: #000; image-rendering: pixelated; }
+    #loading-progress { position: fixed; top: 50%; left: 50%; z-index: 10; width: min(360px, 84vw); padding: 20px; transform: translate(-50%, -50%); color: #fff; background: #000; border: 1px solid #fff; font: 700 16px/1.4 Arial, sans-serif; text-align: center; }
+    #loading-text { min-height: 22px; }
+    #loading-progress::after { display: block; width: 34px; height: 34px; margin: 16px auto 0; border: 4px solid #444; border-top-color: #fff; border-radius: 50%; content: ""; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="loading-progress" role="status" aria-live="polite"><div id="loading-text">Loading...</div></div>
   <canvas id="canvas" aria-label="Terraria game"></canvas>
-  <div id="gamehub-loader" role="status" aria-live="polite">
-    <div id="gamehub-spinner" aria-hidden="true"></div>
-    <div>Loading...</div>
-  </div>
-  <script type="module" crossorigin src="main.js"></script>
   <script>
-    (function () {
-      var loader = document.getElementById('gamehub-loader');
-      var canvas = document.getElementById('canvas');
-      var startedAt = Date.now();
-      function checkReady() {
-        if (canvas && canvas.width > 32 && canvas.height > 32 && Date.now() - startedAt > 900) {
-          loader.classList.add('is-hidden');
-          return;
-        }
-        window.setTimeout(checkReady, 250);
-      }
-      window.setTimeout(checkReady, 250);
-    }());
+    window.addEventListener('error', function () {
+      var text = document.getElementById('loading-text');
+      if (text) text.textContent = 'Unable to load game files.';
+    });
   </script>
+  <script type="module" crossorigin src="main.js"></script>
 </body>
 </html>
