@@ -19,8 +19,11 @@ done
 
 # One worker is placed beside every affected game entrypoint. It reconstructs
 # FILE from FILE.part000, FILE.part001, ... on demand.
-find "$OUTPUT" -type f -name '*.part000' -printf '%h\n' | sort -u | while IFS= read -r dir; do
-  cat > "$dir/sw.js" <<'WORKER'
+find "$OUTPUT" -type f -name '*.part000' -printf '%h\n' | sort -u | while IFS= read -r parts_dir; do
+  game_dir="$parts_dir"
+  while [ "$game_dir" != "$OUTPUT" ] && [ ! -f "$game_dir/index.html" ]; do game_dir=$(dirname "$game_dir"); done
+  [ -f "$game_dir/index.html" ] || continue
+  cat > "$game_dir/sw.js" <<'WORKER'
 const VERSION = 'gamehub-parts-v1';
 self.addEventListener('install', event => { self.skipWaiting(); });
 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
@@ -53,8 +56,8 @@ async function reassembleOrFetch(request) {
   return new Response(new Blob(buffers), { status: 200, headers });
 }
 WORKER
-  if [ -f "$dir/index.html" ] && ! grep -q 'gamehub-parts-sw' "$dir/index.html"; then
-    sed -i 's#</head>#<script id="gamehub-parts-sw">navigator.serviceWorker\&\&navigator.serviceWorker.register("./sw.js");</script></head>#i' "$dir/index.html"
+  if ! grep -q 'gamehub-parts-sw' "$game_dir/index.html"; then
+    sed -i 's#</head>#<script id="gamehub-parts-sw">navigator.serviceWorker\&\&navigator.serviceWorker.register("./sw.js");</script></head>#i' "$game_dir/index.html"
   fi
 done
 printf 'Cloudflare Pages copy prepared at %s\n' "$OUTPUT"
