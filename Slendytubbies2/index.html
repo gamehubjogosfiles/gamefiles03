@@ -86,15 +86,30 @@
     <script>
       var gameInstance = UnityLoader.instantiate("gameContainer", "Build/Build.json");
     </script>
+  
+    <style id="gamehub-loading-theme">
+      html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background:#000; }
+      #loading-ui { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:#000; }
+      #loading-panel { width:min(300px,84vw); color:#fff; text-align:center; font-family:Arial,sans-serif; }
+      #status-text { font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+      #bar-container { width:100%; height:6px; margin-top:10px; background:#333; border-radius:3px; }
+      #bar-fill { width:0%; height:100%; background:#eee; border-radius:3px; transition:width .15s ease; }
+      #progress-detail { margin-top:8px; color:#aaa; font-size:12px; }
+    </style>
+
   </head>
   <body>
-<div id="loading-text"
-    style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING...
-  </div>
+<div id="loading-ui" role="status" aria-live="polite">
+      <div id="loading-panel">
+        <div id="status-text">Downloading game files</div>
+        <div id="bar-container"><div id="bar-fill"></div></div>
+        <div id="progress-detail">Preparing game files...</div>
+      </div>
+    </div>
     <div id="gameContainer" style="width: 800px; height: 600px; margin: auto"></div>
     <script src="Build/UnityLoader.js"></script>
 <script>
-var loadingText = document.querySelector("#loading-text");
+var loadingText = document.querySelector("#status-text");
     let totalBytes = 0;
     let loadedBytes = 0;
 
@@ -114,7 +129,7 @@ var loadingText = document.querySelector("#loading-text");
         chunks.push(value);
         let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
         let mbTotal = '298.61';
-        loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+        loadingText.textContent = "Downloading game files"; document.getElementById("progress-detail").textContent = `${mbDone} MB / ${mbTotal} MB`; document.getElementById("bar-fill").style.width = Math.min(100, (loadedBytes / (parseFloat(mbTotal) * 1024 * 1024)) * 100) + "%";
       }
       let fullBuffer = new Uint8Array(received);
       let offset = 0;
@@ -164,7 +179,7 @@ var loadingText = document.querySelector("#loading-text");
           return originalOpen.call(this, method, url, ...rest);
       };
       var unityInstance = UnityLoader.instantiate("gameContainer", "Build/Build.json");
-      loadingText.remove();
+      document.getElementById("loading-ui").remove();
     })();
     </script>
   </body>

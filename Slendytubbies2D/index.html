@@ -61,9 +61,26 @@
         100% { background-position: 0% 50%; }
       }
     </style>
+  
+    <style id="gamehub-loading-theme">
+      html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background:#000; }
+      #loading-ui { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:#000; }
+      #loading-panel { width:min(300px,84vw); color:#fff; text-align:center; font-family:Arial,sans-serif; }
+      #status-text { font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+      #bar-container { width:100%; height:6px; margin-top:10px; background:#333; border-radius:3px; }
+      #bar-fill { width:0%; height:100%; background:#eee; border-radius:3px; transition:width .15s ease; }
+      #progress-detail { margin-top:8px; color:#aaa; font-size:12px; }
+    </style>
+
   </head>
   <body>
-    <div id="loading-text">LOADING...</div>
+<div id="loading-ui" role="status" aria-live="polite">
+      <div id="loading-panel">
+        <div id="status-text">Downloading game files</div>
+        <div id="bar-container"><div id="bar-fill"></div></div>
+        <div id="progress-detail">Preparing game files...</div>
+      </div>
+    </div>
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
@@ -79,7 +96,7 @@
 
     <script type="text/javascript">
       (async function () {
-        const loadingText = document.getElementById("loading-text");
+        const loadingText = document.getElementById("status-text");
         const TOTAL_MB = (16.96 + 19.9).toFixed(2);
         let loadedBytes = 0;
 
@@ -96,7 +113,7 @@
             loadedBytes += value.length;
             chunks.push(value);
             const mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-            loadingText.textContent = `LOADING... ${mbDone} MB / ${TOTAL_MB} MB`;
+            loadingText.textContent = "Downloading game files"; document.getElementById("progress-detail").textContent = `${mbDone} MB / ${TOTAL_MB} MB`; document.getElementById("bar-fill").style.width = Math.min(100, (loadedBytes / (parseFloat(TOTAL_MB) * 1024 * 1024)) * 100) + "%";
           }
           const fullBuffer = new Uint8Array(received);
           let offset = 0;
@@ -112,7 +129,7 @@
           const cachedResponse = await cache.match(cacheKey);
           if (cachedResponse) {
             const blob = await cachedResponse.blob();
-            loadingText.textContent = `LOADING... (cached)`;
+            loadingText.textContent = "Loading cached files"; document.getElementById("progress-detail").textContent = `0 MB / ${TOTAL_MB} MB`;
             return URL.createObjectURL(blob);
           }
           const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
@@ -161,16 +178,14 @@
 
           const hideWhenReady = () => {
             if (loadingText && loadingText.parentNode) {
-              loadingText.parentNode.removeChild(loadingText);
+              document.getElementById("loading-ui").remove();
             }
           };
           setTimeout(hideWhenReady, 4000);
         } catch (err) {
           console.error(err);
-          loadingText.textContent = "ERROR: " + err.message;
-          loadingText.style.background = "none";
-          loadingText.style.webkitTextFillColor = "red";
-          loadingText.style.color = "red";
+          loadingText.textContent = "Unable to load game files"; document.getElementById("progress-detail").textContent = err.message;
+          document.getElementById("progress-detail").style.color = "#ff6b6b";
         }
       })();
     </script>
