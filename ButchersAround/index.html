@@ -55,6 +55,7 @@
 
   	<!-- EXTRASOURCES -->
     <!-- Loads the Javascript code...-->
+    <script id="gamehub-desktop-fullscreen-guard">(function(){'use strict';var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(mobile)return;var noop=function(){return Promise.reject(new Error('Fullscreen is mobile-only in GameHub'));};try{if(Element.prototype.requestFullscreen)Element.prototype.requestFullscreen=noop;if(Element.prototype.webkitRequestFullscreen)Element.prototype.webkitRequestFullscreen=noop;if(Element.prototype.mozRequestFullScreen)Element.prototype.mozRequestFullScreen=noop;if(Element.prototype.msRequestFullscreen)Element.prototype.msRequestFullscreen=noop;}catch(e){}})();</script>
     <script src="src/Runtime.js"></script>
 
   <script>
