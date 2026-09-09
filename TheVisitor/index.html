@@ -4,7 +4,7 @@
 <script id="gamehub-mobile-fullscreen-first">(function(){'use strict';var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile)return;function enter(){if(document.fullscreenElement)return;var root=document.documentElement,request=root.requestFullscreen||root.webkitRequestFullscreen||root.mozRequestFullScreen||root.msRequestFullScreen;if(request){try{var result=request.call(root,{navigationUI:'hide'});if(result&&result.catch)result.catch(function(){});}catch(e){}}}document.addEventListener('pointerdown',enter,{passive:true});document.addEventListener('touchstart',enter,{passive:true});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>The Visitor</title>
+<title>Duck Life 2: World Champion</title>
 <link rel="icon" type="image/png" href="card.png">
 <link rel="apple-touch-icon" href="card.png">
 <style id="gamehub-touch-style">html,body,body *{-webkit-tap-highlight-color:rgba(0,0,0,0)!important}html,body,canvas,img,a,button{ -webkit-user-select:none!important;user-select:none!important;outline:0!important}html,body{touch-action:manipulation}</style>
@@ -13,6 +13,6 @@
 </head>
 <body>
 <div id="player"></div>
-<script>window.addEventListener('load',function(){var r=window.RufflePlayer.newest();var p=r.createPlayer();p.style.width='100%';p.style.height='100%';document.getElementById('player').appendChild(p);p.load('the-visitor-915.swf');});</script>
+<script>window.addEventListener('load',function(){var r=window.RufflePlayer.newest();var p=r.createPlayer();p.style.width='100%';p.style.height='100%';document.getElementById('player').appendChild(p);p.load('duck-life-2.swf');});</script>
 </body>
 </html>
