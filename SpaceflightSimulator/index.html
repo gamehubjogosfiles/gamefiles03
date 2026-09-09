@@ -30,7 +30,9 @@ var loadingText = document.querySelector("#loading-text");
     let loadedBytes = 0;
 
     async function fetchWithProgress(url) {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to load ' + url + ' (' + response.status + ')');
+      if (!response.body || !response.body.getReader) throw new Error('Streaming is unavailable for ' + url);
       const reader = response.body.getReader();
       let chunks = [];
       let received = 0;
@@ -139,13 +141,22 @@ var loadingText = document.querySelector("#loading-text");
           progressBarFull.style.width = 100 * progress + "%";
         }).then((unityInstance) => {
           loadingBar.style.display = "none";
-          loadingText.remove();
+          loadingText.textContent = "LOADED";
+          loadingText.style.opacity = "0";
+          setTimeout(() => loadingText.remove(), 400);
         }).catch((message) => {
-          alert(message);
+          loadingText.textContent = "FAILED TO LOAD: " + message;
+          loadingText.style.color = "#ff7777";
+          loadingText.style.background = "none";
+          loadingText.style.webkitTextFillColor = "#ff7777";
         });
       };
       document.body.appendChild(script);
     })();
     </script>
+    <style>
+      #loading-text { z-index: 30 !important; pointer-events: none; }
+      #unity-container { z-index: 1; }
+    </style>
   </body>
 </html>
