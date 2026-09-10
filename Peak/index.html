@@ -2,6 +2,7 @@
 <html lang="en-us">
   <head>
 <script id="gamehub-mobile-fullscreen-first">(function(){'use strict';var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile)return;function enter(){if(document.fullscreenElement)return;var root=document.documentElement,request=root.requestFullscreen||root.webkitRequestFullscreen||root.mozRequestFullScreen||root.msRequestFullScreen;if(request){try{var result=request.call(root,{navigationUI:'hide'});if(result&&result.catch)result.catch(function(){});}catch(e){}}}document.addEventListener('pointerdown',enter,{passive:true});document.addEventListener('touchstart',enter,{passive:true});})();</script>
+<script id="gamehub-loading-color">(function(){var colors=['#ef4444','#f0b400','#3b82f6','#8b5cf6','#f97316','#22c55e','#ec4899'];document.documentElement.style.setProperty('--gamehub-loader-accent',colors[Math.floor(Math.random()*colors.length)]);})();</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>PEAK</title>
@@ -15,10 +16,11 @@
       #wrap { position: relative; width: 100vw; height: 100svh; overflow: hidden; background: #000; }
       #unity-canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #000; width: min(100vw, calc(100svh * 16 / 10)); height: min(100svh, calc(100vw * 10 / 16)); max-width: 100vw; max-height: 100svh; outline: none; display: block; }
       #bar { width: min(320px, 70vw); height: 12px; margin-top: 2px; border: 1px solid #555; display: none; z-index: 5; }
-      #barfill { width: 0%; height: 100%; background: #f0b400; }
+      #barfill { width: 0%; height: 100%; background: var(--gamehub-loader-accent); }
       #msg { width: min(90vw, 520px); color: #bbb; font: 13px/1.5 system-ui, sans-serif; text-align: center; z-index: 5; }
+      :root { --gamehub-loader-accent: #f0b400; }
       #gamehub-loading { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #000; color: #fff; font: 700 15px Arial,sans-serif; text-align: center; }
-      #gamehub-loading .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: #f0b400; border-radius: 50%; animation: gamehub-spin .8s linear infinite; }
+      #gamehub-loading .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: var(--gamehub-loader-accent); border-radius: 50%; animation: gamehub-spin .8s linear infinite; }
       #gamehub-loading .detail { min-height: 18px; color: #aaa; font-size: 13px; font-weight: 400; }
       @keyframes gamehub-spin { to { transform: rotate(360deg); } }
       #credit { display:none; /* GameHub hides auxiliary port credits */ position: fixed; right: 10px; bottom: 8px; z-index: 10;
