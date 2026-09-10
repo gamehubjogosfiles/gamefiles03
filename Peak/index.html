@@ -4,7 +4,6 @@
 <script id="gamehub-mobile-fullscreen-first">(function(){'use strict';var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile)return;function enter(){if(document.fullscreenElement)return;var root=document.documentElement,request=root.requestFullscreen||root.webkitRequestFullscreen||root.mozRequestFullScreen||root.msRequestFullScreen;if(request){try{var result=request.call(root,{navigationUI:'hide'});if(result&&result.catch)result.catch(function(){});}catch(e){}}}document.addEventListener('pointerdown',enter,{passive:true});document.addEventListener('touchstart',enter,{passive:true});})();</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <base href="https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@main/">
     <title>PEAK</title>
     <link rel="icon" type="image/png" href="card.png">
     <link rel="apple-touch-icon" href="card.png">
@@ -15,9 +14,13 @@
                    overflow: hidden; }
       #wrap { position: relative; width: 100vw; height: 100svh; overflow: hidden; background: #000; }
       #unity-canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #000; width: min(100vw, calc(100svh * 16 / 10)); height: min(100svh, calc(100vw * 10 / 16)); max-width: 100vw; max-height: 100svh; outline: none; display: block; }
-      #bar { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); width: min(320px, 70vw); height: 12px; border: 1px solid #555; display: none; z-index: 5; }
-      #barfill { width: 0%; height: 100%; background: #7cc242; }
-      #msg { position: fixed; left: 50%; bottom: 48px; transform: translateX(-50%); width: min(90vw, 520px); color: #bbb; font: 13px/1.5 system-ui, sans-serif; text-align: center; z-index: 5; }
+      #bar { width: min(320px, 70vw); height: 12px; margin-top: 2px; border: 1px solid #555; display: none; z-index: 5; }
+      #barfill { width: 0%; height: 100%; background: #f0b400; }
+      #msg { width: min(90vw, 520px); color: #bbb; font: 13px/1.5 system-ui, sans-serif; text-align: center; z-index: 5; }
+      #gamehub-loading { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #000; color: #fff; font: 700 15px Arial,sans-serif; text-align: center; }
+      #gamehub-loading .spinner { width: 36px; height: 36px; border: 3px solid #333; border-top-color: #f0b400; border-radius: 50%; animation: gamehub-spin .8s linear infinite; }
+      #gamehub-loading .detail { min-height: 18px; color: #aaa; font-size: 13px; font-weight: 400; }
+      @keyframes gamehub-spin { to { transform: rotate(360deg); } }
       #credit { display:none; /* GameHub hides auxiliary port credits */ position: fixed; right: 10px; bottom: 8px; z-index: 10;
                 color: #8a8a8a; font: 12px/1.4 system-ui, sans-serif;
                 text-align: right; pointer-events: auto; }
@@ -32,10 +35,9 @@
   <style id="gamehub-touch-style">html,body,body *{-webkit-tap-highlight-color:rgba(0,0,0,0)!important}html,body,canvas,img,a,button{ -webkit-user-select:none!important;user-select:none!important;outline:0!important}html,body{touch-action:manipulation}</style>
 </head>
   <body>
+    <div id="gamehub-loading" role="status"><div class="spinner"></div><div id="gamehub-loading-title">DOWNLOADING...</div><div id="msg" class="detail">Preparing game files...</div><div id="bar"><div id="barfill"></div></div></div>
     <div id="wrap">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-      <div id="bar"><div id="barfill"></div></div>
-      <div id="msg">Loading…</div>
     </div>
     <button id="fs" type="button">Fullscreen</button>
     <div id="credit">
@@ -83,7 +85,7 @@
       // this page; this stamps the same root onto our own URL so the C# level streamer
       // (which resolves bundle URLs against Application.absoluteURL, ignoring <base>)
       // fetches LevelBundles from the CDN too instead of from wherever the page is hosted.
-      var CDN_BASE = "https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@main";
+      var CDN_BASE = "";
       if (CDN_BASE) {
         var u = new URL(window.location.href);
         if (u.searchParams.get("cdn") !== CDN_BASE) {
@@ -96,6 +98,8 @@
       var bar     = document.querySelector("#bar");
       var barfill = document.querySelector("#barfill");
       var msg     = document.querySelector("#msg");
+      var loadingPanel = document.querySelector("#gamehub-loading");
+      var loadingTitle = document.querySelector("#gamehub-loading-title");
 
       function setMsg(t) { msg.textContent = t; }
       function mb(bytes) { return (bytes / 1048576).toFixed(1); }
@@ -107,6 +111,7 @@
 
       function report(label) {
         bar.style.display = "block";
+        loadingTitle.textContent = "DOWNLOADING...";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
         setMsg("Downloading " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
@@ -150,7 +155,8 @@
           var frameworkUrl = await assemble(MANIFEST.framework, "framework");
           var codeUrl      = await assemble(MANIFEST.code, "code");
 
-          setMsg("Starting…");
+          loadingTitle.textContent = "LOADING...";
+          setMsg("Starting game...");
           var script = document.createElement("script");
           script.src = BUILD + "/" + MANIFEST.loader.file;
           script.onload = function () {
@@ -163,12 +169,14 @@
               productName: "PEAK",
               productVersion: "1.62.a",
             }, function (p) {
+              loadingTitle.textContent = "LOADING...";
               bar.style.display = "block";
               barfill.style.width = Math.round(p * 100) + "%";
-              setMsg("Loading… " + Math.round(p * 100) + "%");
+              setMsg("Loading game... " + Math.round(p * 100) + "%");
             }).then(function (instance) {
               window.unityInstance = instance;
               bar.style.display = "none";
+              loadingPanel.style.display = "none";
               setMsg("");
               // Unity's own SetFullscreen keeps the canvas sized to the screen; the
               // Fullscreen API on the element alone leaves the render target unchanged.
