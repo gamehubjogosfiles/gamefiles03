@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
+  <title>Muddy Heights</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico?v=2">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <style>
+    html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background:#000; }
+    #unity-container { width:100vw; height:100vh; position:fixed; inset:0; }
+    #unity-canvas { width:100%; height:100%; display:block; }
+  </style>
+  <script>
+    (function () {
+      function enableFullscreen() {
+        const docEl = document.documentElement;
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        if (requestFullScreen) requestFullScreen.call(docEl).catch(function () {});
+      }
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        ['touchstart', 'click', 'keydown'].forEach(function (event) {
+          window.addEventListener(event, enableFullscreen, { once: true });
+        });
+      }
+    }());
+  </script>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-loading-bar"><div id="unity-logo"></div><div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div></div>
+    <div id="unity-warning"></div>
+  </div>
+  <script>
+    const canvas = document.querySelector('#unity-canvas');
+    const loadingBar = document.querySelector('#unity-loading-bar');
+    const progressBarFull = document.querySelector('#unity-progress-bar-full');
+    const warningBanner = document.querySelector('#unity-warning');
+    function unityShowBanner(message, type) {
+      const div = document.createElement('div');
+      div.textContent = message;
+      div.style.cssText = type === 'error' ? 'background:#b00020;color:white;padding:10px' : 'background:#fff3cd;color:#111;padding:10px';
+      warningBanner.appendChild(div);
+      warningBanner.style.display = 'block';
+      if (type !== 'error') setTimeout(function () { div.remove(); }, 5000);
+    }
+    const buildUrl = 'Build';
+    const config = {
+      dataUrl: buildUrl + '/Muddy Heights.data',
+      frameworkUrl: buildUrl + '/Muddy Heights.framework.js',
+      codeUrl: buildUrl + '/Muddy Heights.wasm',
+      streamingAssetsUrl: 'StreamingAssets',
+      companyName: 'DefaultCompany',
+      productName: 'Muddy Heights',
+      productVersion: '',
+      showBanner: unityShowBanner
+    };
+    loadingBar.style.display = 'block';
+    const script = document.createElement('script');
+    script.src = buildUrl + '/Muddy Heights.loader.js';
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        progressBarFull.style.width = (100 * progress) + '%';
+      }).then(function (instance) {
+        loadingBar.style.display = 'none';
+        canvas.focus();
+        setTimeout(function () {
+          canvas.dispatchEvent(new KeyboardEvent('keydown', { key:' ', code:'Space', keyCode:32, which:32, bubbles:true }));
+          setTimeout(function () { canvas.dispatchEvent(new KeyboardEvent('keyup', { key:' ', code:'Space', keyCode:32, which:32, bubbles:true })); }, 80);
+        }, 350);
+      }).catch(function (message) { unityShowBanner(message, 'error'); });
+    };
+    script.onerror = function () { unityShowBanner('Unable to load the game.', 'error'); };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
