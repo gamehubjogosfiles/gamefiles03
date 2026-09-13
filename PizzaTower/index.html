@@ -98,13 +98,18 @@ canvas.emscripten{height:100%;margin:auto;padding:0;border:0 none;background-col
                   }
                   return originalOpen.call(this, method, url, ...rest);
               };
-              let index = document.createElement("script");
-              index.src = "index.js";
-              document.body.appendChild(index);
-      
-              let runner = document.createElement("script");
-              runner.src = "runner.js";
-              document.body.appendChild(runner);
+              function loadScript(src) {
+                  return new Promise((resolve, reject) => {
+                      const script = document.createElement("script");
+                      script.src = src;
+                      script.onload = resolve;
+                      script.onerror = reject;
+                      document.body.appendChild(script);
+                  });
+              }
+              // index.js defines the GameMaker callbacks and manifest before the Emscripten runner starts.
+              await loadScript("index.js");
+              await loadScript("runner.js");
           }).catch(error => {
               console.error("Failed to merge files:", error);
           });
