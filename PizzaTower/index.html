@@ -362,18 +362,11 @@
       <div id="messages">
       </div>
     </div>
-	<!-- Ads Stuff for games that need it -->
-   <script async
-     data-ad-client="ca-pub-123"
-     data-ad-frequency-hint="30s"
-     data-adbreak-test="on"
-     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">
-   </script>
-
-   <script>
-     window.adsbygoogle = window.adsbygoogle || [];
-     const adBreak =  adConfig = function(o) {adsbygoogle.push(o);}
-    </script>
+	<!-- Ads disabled for self-hosting; the game must not depend on an external script. -->
+	<script>
+	  window.adsbygoogle = window.adsbygoogle || [];
+	  const adBreak = adConfig = function() {};
+	</script>
 
     <script type="text/javascript">
       const CHANGE_ASPECT_RATIO = true;
