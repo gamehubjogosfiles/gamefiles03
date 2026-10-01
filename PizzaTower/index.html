@@ -777,6 +777,43 @@
         lockOrientationIfSupported();
       });
     </script>
+
+	<!-- Reassemble the large game asset from local chunks before the GameMaker runner requests it. -->
+	<script>
+	(function () {
+	  const gameParts = ['game.unx.part01', 'game.unx.part02', 'game.unx.part03', 'game.unx.part04', 'game.unx.part05', 'game.unx.part06', 'game.unx.part07', 'game.unx.part08'];
+	  const originalOpen = XMLHttpRequest.prototype.open;
+	  const originalSend = XMLHttpRequest.prototype.send;
+	  const gameFile = /(?:^|\/)game\.unx(?:[?#]|$)/;
+	  const mergedGame = Promise.all(gameParts.map(function (part) {
+	    return fetch(part, { cache: 'no-store' }).then(function (response) {
+	      if (!response.ok) throw new Error('Unable to load ' + part);
+	      return response.arrayBuffer();
+	    });
+	  })).then(function (buffers) {
+	    return URL.createObjectURL(new Blob(buffers, { type: 'application/octet-stream' }));
+	  });
+	  XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
+	    if (gameFile.test(String(url))) {
+	      this.__pizzaGameOpen = [method, async, user, password];
+	      this.__pizzaGameRequest = true;
+	      return;
+	    }
+	    return originalOpen.call(this, method, url, async, user, password);
+	  };
+	  XMLHttpRequest.prototype.send = function (body) {
+	    if (!this.__pizzaGameRequest) return originalSend.call(this, body);
+	    const xhr = this;
+	    mergedGame.then(function (url) {
+	      const args = xhr.__pizzaGameOpen;
+	      originalOpen.call(xhr, args[0], url, args[1], args[2], args[3]);
+	      originalSend.call(xhr, body);
+	    }).catch(function (error) {
+	      setTimeout(function () { throw error; });
+	    });
+	  };
+	})();
+	</script>
 	<!-- Load Main Game Runner JS File -->
     <script async type="text/javascript" src="runner.js"></script>
   </body>
