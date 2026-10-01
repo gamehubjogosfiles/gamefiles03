@@ -1,72 +1,82 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Karlson WebGL</title>
-    <style>
-      html, body { width: 100%; height: 100%; }
-      #unity-canvas { display: block; margin: 0 auto; }
-      #game-loading { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; color: #fff; background: #050505; font-family: Inter, system-ui, sans-serif; transition: opacity .25s ease; }
-      #game-loading.is-hidden { opacity: 0; pointer-events: none; }
-      .loading-card { display: grid; justify-items: center; gap: 14px; min-width: min(320px, 80vw); padding: 28px 30px; border: 1px solid rgba(255,255,255,.16); border-radius: 16px; background: rgba(20,20,20,.92); box-shadow: 0 18px 60px rgba(0,0,0,.5); }
-      .loading-title { color: #26b9ff; font-size: 1.15rem; font-weight: 900; letter-spacing: .14em; }
-      .loading-spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,.2); border-top-color: #26b9ff; border-radius: 50%; animation: spin .8s linear infinite; }
-      .loading-track { width: 100%; height: 4px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.12); }
-      .loading-pulse { width: 38%; height: 100%; border-radius: inherit; background: #26b9ff; animation: pulse 1.25s ease-in-out infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      @keyframes pulse { 0%, 100% { transform: translateX(-110%); } 50% { transform: translateX(270%); } }
-    </style>
-  </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0; background: #050505; overflow: hidden;">
-    <div id="game-loading" role="status" aria-live="polite">
-      <div class="loading-card">
-        <div class="loading-title">KARLSON</div>
-        <div class="loading-spinner" aria-hidden="true"></div>
-        <div id="loading-text">Loading game...</div>
-        <div class="loading-track"><div class="loading-pulse"></div></div>
-      </div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+  <title>KARLSON WEBGL</title>
+  <link rel="stylesheet" href="../gamehub-loading-theme.css">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #111; color: #fff; font-family: sans-serif; }
+    #unity-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; background: #000; }
+    #unity-canvas { width: 100%; height: 100%; background: #000; }
+    #loading-ui { position: absolute; text-align: center; width: 300px; z-index: 10; }
+    #bar-container { width: 100%; height: 6px; background: #333; margin-top: 10px; border-radius: 3px; }
+    #bar-fill { width: 0%; height: 100%; background: #eee; border-radius: 3px; transition: width .1s; }
+    #status-text { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width="1280" height="720" tabindex="-1"></canvas>
+    <div id="loading-ui" class="gamehub-loading" data-loading-style="dawn" style="--gamehub-load-accent: #26b9ff;" role="status" aria-live="polite">
+      <div id="status-text">loading data</div>
+      <div id="bar-container"><div id="bar-fill"></div></div>
+      <div id="progress-detail">0.00 MB / 21.65 MB</div>
     </div>
-    <canvas id="unity-canvas" width="1280" height="720" tabindex="-1" style="width: 1280px; height: 720px; background: #231F20"></canvas>
-    <script src="Build/KarlsonWEBGL.loader.js"></script>
-    <script>
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        var canvas = document.querySelector('#unity-canvas');
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.position = 'fixed';
-        document.body.style.textAlign = 'left';
+  </div>
+  <script>
+    let loadedBytes = 0;
+    const TOTAL_PAYLOAD_BYTES = 22704227;
+    const totalSize = TOTAL_PAYLOAD_BYTES / (1024 * 1024);
+    const statusText = document.querySelector('#status-text');
+    const barFill = document.querySelector('#bar-fill');
+    const progressDetail = document.querySelector('#progress-detail');
+    const loadingUI = document.querySelector('#loading-ui');
+    const notifyParent = (state, message) => { if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*'); };
+    const formatMB = bytes => (bytes / (1024 * 1024)).toFixed(2);
+    const updateProgress = message => {
+      const safe = Math.min(loadedBytes, TOTAL_PAYLOAD_BYTES);
+      statusText.textContent = message;
+      progressDetail.textContent = `${formatMB(safe)} MB / ${totalSize.toFixed(2)} MB`;
+      barFill.style.width = Math.min(100, safe / TOTAL_PAYLOAD_BYTES * 100) + '%';
+    };
+    async function fetchWithProgress(url) {
+      const response = await fetch(url);
+      if (!response.ok || !response.body) throw new Error('Could not download ' + url);
+      const reader = response.body.getReader();
+      const chunks = [];
+      let received = 0;
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        chunks.push(value); received += value.byteLength; loadedBytes += value.byteLength;
+        updateProgress('Downloading game files');
       }
-      const loading = document.getElementById('game-loading');
-      const loadingText = document.getElementById('loading-text');
-      const notifyParent = (state, message) => {
-        if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*');
-      };
-      const config = {
-        dataUrl: 'Build/KarlsonWEBGL.data.unityweb',
-        frameworkUrl: 'Build/KarlsonWEBGL.framework.js.unityweb',
-        codeUrl: 'Build/KarlsonWEBGL.wasm.unityweb',
-        streamingAssetsUrl: 'StreamingAssets',
-        companyName: 'Cake Logic',
-        productName: 'Karlson WebGL',
-        productVersion: '1'
-      };
-      loadingText.textContent = 'Loading game files...';
-      createUnityInstance(document.querySelector('#unity-canvas'), config)
-        .then(function () {
-          loadingText.textContent = 'Ready';
-          notifyParent('ready');
-          window.setTimeout(function () { loading.classList.add('is-hidden'); }, 250);
-        })
-        .catch(function (error) {
-          loadingText.textContent = 'Unable to load game';
-          notifyParent('error', 'Unable to load KARLSON');
-          console.error(error);
-        });
-    </script>
-  </body>
+      const output = new Uint8Array(received); let offset = 0;
+      for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
+      return output.buffer;
+    }
+    const canvas = document.querySelector('#unity-canvas');
+    (async () => {
+      try {
+        updateProgress('loading data');
+        const [dataBuffer, wasmBuffer] = await Promise.all([fetchWithProgress('Build/KarlsonWEBGL.data.unityweb'), fetchWithProgress('Build/KarlsonWEBGL.wasm.unityweb')]);
+        const dataUrl = 'Build/KarlsonWEBGL.data.unityweb';
+        const wasmUrl = 'Build/KarlsonWEBGL.wasm.unityweb';
+        const config = { dataUrl, frameworkUrl: 'Build/KarlsonWEBGL.framework.js.unityweb', codeUrl: wasmUrl, streamingAssetsUrl: 'StreamingAssets', companyName: 'Cake Logic', productName: 'Karlson WebGL', productVersion: '1' };
+        const script = document.createElement('script'); script.src = 'Build/KarlsonWEBGL.loader.js';
+        let gameReady = false;
+        const markReady = () => { if (gameReady) return; gameReady = true; notifyParent('ready'); loadingUI.style.display = 'none';  };
+        script.onload = () => createUnityInstance(canvas, config, progress => {
+          statusText.textContent = 'Starting game'; barFill.style.width = (100 * progress) + '%'; progressDetail.textContent = `${totalSize.toFixed(2)} MB / ${totalSize.toFixed(2)} MB`;
+          if (progress >= 1) markReady();
+        }).then(markReady).catch(showError);
+        script.onerror = () => showError(new Error('Failed to load the game loader.'));
+        document.body.appendChild(script);
+      } catch (error) { showError(error); }
+    })();
+    function showError(error) { statusText.textContent = 'Failed to load the game'; progressDetail.textContent = 'Refresh the page to try again.'; notifyParent('error', 'Unable to load the game.'); console.error(error); }
+  </script>
+</body>
 </html>
