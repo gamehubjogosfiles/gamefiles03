@@ -418,6 +418,11 @@
       var startingHeight, startingWidth;
       var startingAspect;
       var Module = {
+        onAbort: function (reason) {
+          console.error("Pizza Tower runner abort:", reason);
+          var status = document.getElementById("status");
+          if (status) status.textContent = "Runner abort: " + reason;
+        },
         preRun: [],
         postRun: [],
         print: (function () {
@@ -471,6 +476,8 @@
           if (arguments.length > 1)
             text = Array.prototype.slice.call(arguments).join(" ");
           console.error(text);
+          var errorOutput = document.getElementById("status");
+          if (errorOutput && text) errorOutput.textContent = "printErr: " + text;
         },
         canvas: (function () {
           var canvas = document.getElementById("canvas");
@@ -521,14 +528,18 @@
         },
       };
       Module.setStatus("Downloading...");
-      window.onerror = function (event) {
-        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-        Module.setStatus("Exception thrown, see JavaScript console");
+      window.onerror = function (event, source, lineno, colno, error) {
+        window.__pizzaLastError = { event: String(event), source: String(source), lineno: lineno, colno: colno, stack: error && error.stack ? String(error.stack) : "" };
+        console.error("Pizza Tower JS error:", event, source, lineno, colno, error && error.stack);
+        var errorStatus = document.getElementById("status");
+        if (errorStatus) errorStatus.textContent = "JS error: " + event + " @ " + source + ":" + lineno;
         spinnerElement.style.display = "none";
-        Module.setStatus = function (text) {
-          if (text) Module.printErr("[post-exception status] " + text);
-        };
+        return true;
       };
+      window.addEventListener("unhandledrejection", function (event) {
+        window.__pizzaLastRejection = String(event.reason && (event.reason.stack || event.reason.message) || event.reason);
+        console.error("Pizza Tower rejection:", event.reason);
+      });
 
       // Route URL GET parameters to argc+argv
       if (typeof window === "object") {
@@ -778,34 +789,41 @@
       });
     </script>
 
-	<!-- Reassemble the large game asset from local chunks before the GameMaker runner requests it. -->
+	<!-- Reassemble large self-hosted assets from local chunks before the runner requests them. -->
 	<script>
 	(function () {
-	  const gameParts = ['game.unx.part01', 'game.unx.part02', 'game.unx.part03', 'game.unx.part04', 'game.unx.part05', 'game.unx.part06', 'game.unx.part07', 'game.unx.part08'];
+	  const assetParts = {
+	    "game.unx": ['game.unx.part01', 'game.unx.part02', 'game.unx.part03', 'game.unx.part04', 'game.unx.part05', 'game.unx.part06', 'game.unx.part07', 'game.unx.part08'],
+	    "runner.data": ['runner.data.part01', 'runner.data.part02', 'runner.data.part03', 'runner.data.part04', 'runner.data.part05', 'runner.data.part06', 'runner.data.part07', 'runner.data.part08', 'runner.data.part09', 'runner.data.part10', 'runner.data.part11', 'runner.data.part12', 'runner.data.part13', 'runner.data.part14', 'runner.data.part15', 'runner.data.part16', 'runner.data.part17']
+	  };
 	  const originalOpen = XMLHttpRequest.prototype.open;
 	  const originalSend = XMLHttpRequest.prototype.send;
-	  const gameFile = /(?:^|\/)game\.unx(?:[?#]|$)/;
-	  const mergedGame = Promise.all(gameParts.map(function (part) {
-	    return fetch(part, { cache: 'no-store' }).then(function (response) {
-	      if (!response.ok) throw new Error('Unable to load ' + part);
-	      return response.arrayBuffer();
+	  const assetPattern = /(?:^|\/)(game\.unx|runner\.data)(?:[?#]|$)/;
+	  const mergedAssets = {};
+	  Object.keys(assetParts).forEach(function (name) {
+	    mergedAssets[name] = Promise.all(assetParts[name].map(function (part) {
+	      return fetch(part, { cache: 'no-store' }).then(function (response) {
+	        if (!response.ok) throw new Error('Unable to load ' + part);
+	        return response.arrayBuffer();
+	      });
+	    })).then(function (buffers) {
+	      return URL.createObjectURL(new Blob(buffers, { type: 'application/octet-stream' }));
 	    });
-	  })).then(function (buffers) {
-	    return URL.createObjectURL(new Blob(buffers, { type: 'application/octet-stream' }));
 	  });
 	  XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
-	    if (gameFile.test(String(url))) {
-	      this.__pizzaGameOpen = [method, async, user, password];
-	      this.__pizzaGameRequest = true;
+	    const match = assetPattern.exec(String(url));
+	    if (match) {
+	      this.__pizzaAssetName = match[1];
+	      this.__pizzaAssetOpen = [method, async, user, password];
 	      return;
 	    }
 	    return originalOpen.call(this, method, url, async, user, password);
 	  };
 	  XMLHttpRequest.prototype.send = function (body) {
-	    if (!this.__pizzaGameRequest) return originalSend.call(this, body);
+	    if (!this.__pizzaAssetName) return originalSend.call(this, body);
 	    const xhr = this;
-	    mergedGame.then(function (url) {
-	      const args = xhr.__pizzaGameOpen;
+	    mergedAssets[this.__pizzaAssetName].then(function (url) {
+	      const args = xhr.__pizzaAssetOpen;
 	      originalOpen.call(xhr, args[0], url, args[1], args[2], args[3]);
 	      originalSend.call(xhr, body);
 	    }).catch(function (error) {
@@ -815,6 +833,38 @@
 	})();
 	</script>
 	<!-- Load Main Game Runner JS File -->
-    <script async type="text/javascript" src="runner.js"></script>
+    <script>
+      // Force fresh self-hosted runtime binaries during validation.
+      Module.locateFile = function (path, prefix) {
+        return (prefix || "") + path + "?pizza-runtime-20261002c";
+      };
+    </script>
+    <script>
+      // GameMaker's palette shader uses a uniform-controlled float loop. WebGL 1
+      // requires a compile-time integer loop bound, so normalize only that loop
+      // before the runner compiles it (the original game logic is unchanged).
+      (function installPaletteShaderCompatibilityPatch() {
+        function patchShaderSource(source) {
+          if (typeof source !== "string") return source;
+          source = source.replace(
+            "for(float i = palette_UVs.y; i < palette_UVs.w; i += texel_size.y) {",
+            "for(int palette_loop_index = 0; palette_loop_index < 256; palette_loop_index++) { float i = palette_UVs.y + float(palette_loop_index) * texel_size.y; if (i >= palette_UVs.w) break;"
+          );
+          source = source.replace(
+            "for(float d = 0.0; d < rad_circle; d += rad_circle / (4.0 + (i - 1.0))){",
+            "for(int outline_loop_index = 0; outline_loop_index < 16; outline_loop_index++) { float d = rad_circle * float(outline_loop_index) / (4.0 + (i - 1.0)); if (d >= rad_circle) break;"
+          );
+          return source;
+        }
+        [window.WebGLRenderingContext, window.WebGL2RenderingContext].forEach(function (Context) {
+          if (!Context || !Context.prototype || !Context.prototype.shaderSource) return;
+          var originalShaderSource = Context.prototype.shaderSource;
+          Context.prototype.shaderSource = function (shader, source) {
+            return originalShaderSource.call(this, shader, patchShaderSource(source));
+          };
+        });
+      })();
+    </script>
+    <script async type="text/javascript" src="runner.js?pizza-runtime-20261002c"></script>
   </body>
 </html>
