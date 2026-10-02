@@ -1446,6 +1446,8 @@ $("modalBg").addEventListener("click", function (e) { if (e.target === $("modalB
 document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
 bindMenus();
 updateTitle();
+// GameHub mode: launch the Unity build immediately instead of opening the CKAN screen.
+startUnity();
 setStatus("Loading registry...");
 Promise.all([dbGet("state"), dbGet("labels")]).then(function (res) {
   var saved = res[0];
