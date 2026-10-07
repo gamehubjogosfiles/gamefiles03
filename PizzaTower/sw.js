@@ -1,5 +1,5 @@
 const GAME_NAME = "PizzaTower_GM2";
-const GAME_VERSION = "1.0.0.0";
+const GAME_VERSION = "1.1.0-gamehub-fix-2";
 
 const CACHE_NAME = JSON.stringify({"name": GAME_NAME, "version": GAME_VERSION});
 const CACHE_FILES = ["runner.data",

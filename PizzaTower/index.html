@@ -92,7 +92,10 @@
       canvas.emscripten {
         display: none;
         background-color: black;
-        position: flex;
+        position: relative;
+        width: 100vw;
+        max-width: 100vw;
+        height: auto;
         transition: opacity 5s ease-in;
         -webkit-transition: opacity 5s ease-in;
         opacity: 0;
@@ -460,10 +463,7 @@
 			  // below are custom
 			  // stops loading text on game run
 			  loadprogress += 1;
-              // This Forces 1920x1080 aspect ratio on game startup
-              canvas.width = 1920;
-              canvas.height = 1080;
-
+			  // Let GameMaker own the backing buffer; the wrapper only controls CSS sizing.
 			  // TRUE END of custom shit
             }
             if (element) {
@@ -539,7 +539,15 @@
       window.addEventListener("unhandledrejection", function (event) {
         window.__pizzaLastRejection = String(event.reason && (event.reason.stack || event.reason.message) || event.reason);
         console.error("Pizza Tower rejection:", event.reason);
+        var rejectionStatus = document.getElementById("status");
+        if (rejectionStatus) rejectionStatus.textContent = "Load error: " + window.__pizzaLastRejection;
       });
+      canvasElement.addEventListener("webglcontextlost", function (event) {
+        event.preventDefault();
+        var contextStatus = document.getElementById("status");
+        if (contextStatus) contextStatus.textContent = "WebGL context lost. Reload the game.";
+        console.error("Pizza Tower WebGL context lost");
+      }, false);
 
       // Route URL GET parameters to argc+argv
       if (typeof window === "object") {
@@ -760,9 +768,8 @@
 		// uh, shit that no one cares about
       const resizeObserver = new ResizeObserver(() => {
         window.requestAnimationFrame(ensureAspectRatio);
-        setTimeout(() => window.requestAnimationFrame(ensureAspectRatio), 100);
       });
-      resizeObserver.observe(document.body);
+      resizeObserver.observe(document.documentElement);
 		
 		// Disable Scrolling on Mobile
       if (/Android|iPhone|iPod/i.test(navigator.userAgent)) {

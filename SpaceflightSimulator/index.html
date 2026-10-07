@@ -12,10 +12,10 @@
   <style id="gamehub-touch-style">html,body,body *{-webkit-tap-highlight-color:rgba(0,0,0,0)!important}html,body,canvas,img,a,button{ -webkit-user-select:none!important;user-select:none!important;outline:0!important}html,body{touch-action:manipulation}</style>
 </head>
   <body>
-    <style id="gamehub-loading-style">:root{--gamehub-loader-accent:#f0b400}#gamehub-loading{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#000;color:#fff;font:700 15px Arial,sans-serif;text-align:center}#gamehub-loading .spinner{width:36px;height:36px;border:3px solid #333;border-top-color:var(--gamehub-loader-accent);border-radius:50%;animation:gamehub-spin .8s linear infinite}#gamehub-loading .detail{min-height:18px;color:#aaa;font-size:13px;font-weight:400}@keyframes gamehub-spin{to{transform:rotate(360deg)}}</style>
+    <style id="gamehub-loading-style">:root{--gamehub-loader-accent:#f0b400}#gamehub-loading{pointer-events:none;position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#000;color:#fff;font:700 15px Arial,sans-serif;text-align:center}#gamehub-loading .spinner{width:36px;height:36px;border:3px solid #333;border-top-color:var(--gamehub-loader-accent);border-radius:50%;animation:gamehub-spin .8s linear infinite}#gamehub-loading .detail{min-height:18px;color:#aaa;font-size:13px;font-weight:400}@keyframes gamehub-spin{to{transform:rotate(360deg)}}</style>
     <div id="gamehub-loading" role="status"><div class="spinner"></div><div id="loading-text">DOWNLOADING...</div><div id="loading-detail" class="detail">Preparing game files...</div></div>
     <div id="unity-container">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width=960 height=600 tabindex="0"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -146,6 +146,9 @@ var loadingText = document.querySelector("#loading-text");
         }).then((unityInstance) => {
           loadingBar.style.display = "none";
           document.querySelector('#gamehub-loading').style.display = 'none';
+          canvas.tabIndex = 0;
+          canvas.focus();
+          canvas.addEventListener('pointerdown', function () { canvas.focus(); }, { passive: true });
         }).catch((message) => {
           loadingText.textContent = "FAILED TO LOAD";
           loadingDetail.textContent = String(message);

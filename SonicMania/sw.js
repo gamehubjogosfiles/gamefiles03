@@ -1,9 +1,9 @@
-var _cacheName = 'sonicmania-9282022';
+var _cacheName = 'sonicmania-rsdk-v3';
 var _cacheFiles = [
 	'RSDKv5.html',
 	'RSDKv5.js',
 	'RSDKv5.wasm',
-  'https://files.catbox.moe/xsfgty.rsdk'
+	  'https://files.catbox.moe/xsfgtj.rsdk'
 ];
 	
 self.addEventListener('install', (e) => {
