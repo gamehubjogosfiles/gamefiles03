@@ -1,0 +1,47 @@
+{
+  "size": 208400940,
+  "sha256": "77a904387581978222a78d2b7d6cd5944f9537cd72db0d6588577e99b683090c",
+  "partSize": 20971520,
+  "parts": [
+    {
+      "url": "rsdk/part-000.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-001.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-002.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-003.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-004.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-005.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-006.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-007.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-008.bin",
+      "size": 20971520
+    },
+    {
+      "url": "rsdk/part-009.bin",
+      "size": 19657260
+    }
+  ]
+}

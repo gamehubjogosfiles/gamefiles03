@@ -41,7 +41,7 @@ var Module = typeof Module != 'undefined' ? Module : {};
         PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
       }
       var PACKAGE_NAME = 'bin/Emscripten//RSDKv5.data';
-      var REMOTE_PACKAGE_BASE = 'https://files.catbox.moe/xsfgtj.rsdk';
+      var REMOTE_PACKAGE_BASE = 'RSDKv5.rsdk';
       if (typeof Module['locateFilePackage'] === 'function' && !Module['locateFile']) {
         Module['locateFile'] = Module['locateFilePackage'];
         err('warning: you defined Module.locateFilePackage, that has been renamed to Module.locateFile (using your locateFilePackage for now)');
