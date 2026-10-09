@@ -545,6 +545,9 @@
       window.addEventListener("unhandledrejection", function (event) {
         window.__pizzaLastRejection = String(event.reason && (event.reason.stack || event.reason.message) || event.reason);
         console.error("Pizza Tower rejection:", event.reason);
+        if (/Permissions check failed|fullscreen request was denied|requestFullscreen/i.test(window.__pizzaLastRejection)) {
+          return;
+        }
         var rejectionStatus = document.getElementById("status");
         if (rejectionStatus) rejectionStatus.textContent = "Load error: " + window.__pizzaLastRejection;
       });
