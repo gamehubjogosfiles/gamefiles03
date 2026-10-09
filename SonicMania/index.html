@@ -236,6 +236,44 @@
 				};
 			};
 		</script>
-		<script async="async" defer="defer" type="text/javascript" src="RSDKv5.js"></script>
+		<!-- Assemble the split RSDK package before Emscripten requests RSDKv5.rsdk. -->
+            <script>
+              (function () {
+                var parts = [
+                  'rsdk/part-000.bin', 'rsdk/part-001.bin', 'rsdk/part-002.bin',
+                  'rsdk/part-003.bin', 'rsdk/part-004.bin', 'rsdk/part-005.bin',
+                  'rsdk/part-006.bin', 'rsdk/part-007.bin', 'rsdk/part-008.bin',
+                  'rsdk/part-009.bin'
+                ];
+                var originalFetch = window.fetch.bind(window);
+                var packagePromise;
+                function assemblePackage() {
+                  if (!packagePromise) {
+                    packagePromise = Promise.all(parts.map(function (part) {
+                      return originalFetch(part, { cache: 'no-store' }).then(function (response) {
+                        if (!response.ok) throw new Error('Unable to load ' + part + ': HTTP ' + response.status);
+                        return response.arrayBuffer();
+                      });
+                    })).then(function (buffers) {
+                      return new Blob(buffers, { type: 'application/octet-stream' });
+                    });
+                  }
+                  return packagePromise;
+                }
+                window.fetch = function (input, init) {
+                  var url = typeof input === 'string' ? input : input && input.url;
+                  if (url && /(?:^|\/)RSDKv5\.rsdk(?:[?#]|$)/.test(String(url))) {
+                    return assemblePackage().then(function (blob) {
+                      return new Response(blob, {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/octet-stream' }
+                      });
+                    });
+                  }
+                  return originalFetch(input, init);
+                };
+              }());
+            </script>
+            <script async="async" defer="defer" type="text/javascript" src="RSDKv5.js"></script>
 	</body>
 </html>
