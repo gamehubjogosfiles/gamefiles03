@@ -273,6 +273,27 @@
                   }
                   return originalFetch(input, init);
                 };
+                var originalOpen = XMLHttpRequest.prototype.open;
+                var originalSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
+                  if (/(?:^|\/)RSDKv5\.rsdk(?:[?#]|$)/.test(String(url))) {
+                    this.__sonicPackageRequest = [method, async, user, password];
+                    return;
+                  }
+                  return originalOpen.call(this, method, url, async, user, password);
+                };
+                XMLHttpRequest.prototype.send = function (body) {
+                  if (!this.__sonicPackageRequest) return originalSend.call(this, body);
+                  var xhr = this;
+                  assemblePackage().then(function (blob) {
+                    var blobUrl = URL.createObjectURL(blob);
+                    var args = xhr.__sonicPackageRequest;
+                    originalOpen.call(xhr, args[0], blobUrl, args[1], args[2], args[3]);
+                    originalSend.call(xhr, body);
+                  }).catch(function (error) {
+                    if (typeof xhr.onerror === 'function') xhr.onerror(error);
+                  });
+                };
               }());
             </script>
             <script async="async" defer="defer" type="text/javascript" src="RSDKv5.js"></script>
