@@ -13,7 +13,7 @@
         html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
         #player { width: 100%; height: 100%; }
     </style>
-    <script id="gamehub-ruffle-config">window.RufflePlayer=window.RufflePlayer||{};window.RufflePlayer.config=Object.assign({},window.RufflePlayer.config||{},{contextMenu:"off"});</script>
+    <script id="gamehub-ruffle-config">window.RufflePlayer=window.RufflePlayer||{};window.RufflePlayer.config=Object.assign({},window.RufflePlayer.config||{},{contextMenu:"off",autoplay:"on",unmuteOverlay:"hidden"});</script>
 <script src="ruffle.js"></script>
 
 
@@ -51,7 +51,7 @@
             player.style.width = "100%";
             player.style.height = "100%";
             
-            player.load("FireboyandWatergirlinTheLightTemple.swf"); 
+            player.load("FireboyandWatergirlinTheLightTemple.swf").then(() => player.focus());
         });
     </script>
 
@@ -60,7 +60,6 @@
   const clearTransientTouchState = () => {
     if (window.getSelection) window.getSelection().removeAllRanges();
     const active = document.activeElement;
-    if (active && active !== document.body && !/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) active.blur();
   };
   document.addEventListener('pointerup', clearTransientTouchState, { capture: true, passive: true });
   document.addEventListener('touchend', clearTransientTouchState, { capture: true, passive: true });

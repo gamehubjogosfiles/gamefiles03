@@ -142,18 +142,15 @@ PokiSDK= function() {
   }
 
   // ***** ADS CONTROL *****
+  // Ads are not part of the local GameHub build. Resolve immediately so an
+  // unavailable ad provider can never block level loading.
   this.commercialBreak= function(){
-    consoleLog("--fx--PokiSDK--commercialBreak--");
-    return new Promise((resolve, reject)=> {
-      loadJS("https://www.ubg235.com/ads/commercial.js", resolve);  
-    });
+    consoleLog("--fx--PokiSDK--commercialBreak--offline");
+    return Promise.resolve();
   }
-
   this.rewardedBreak= function() {
-   consoleLog("--fx--PokiSDK--rewardedBreak--");
-    return new Promise((resolve, reject)=> {
-      loadJS("https://www.ubg235.com/ads/rewarded.js", resolve);
-    }); 
+    consoleLog("--fx--PokiSDK--rewardedBreak--offline");
+    return Promise.resolve();
   }
 
   this.displayAd= function() {

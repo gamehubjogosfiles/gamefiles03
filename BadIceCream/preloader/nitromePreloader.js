@@ -122,17 +122,12 @@
         titleSpan.style.transform = `scale(${1/scale}) translate(-50%, -50%)`
     }
 
-    const fetchGameData = (gameSlug) => {
-        const size = 50;
-        return new Promise(resolve => {
-            fetch(`https://api.poki.com/game/${gameSlug}?site=${siteId}`)
-                .then(response => response.json())
-                .then(data => {
-                    resolve({
-                        thumb: `patch/png/null.png?https://img.poki.com/cdn-cgi/image/quality=78,width=${size},height=${size},fit=cover,g=0.5x0.5,f=auto/${data.image.path}`,
-                        title: data.title
-                    });
-                });
+    const fetchGameData = (_gameSlug) => {
+        // GameHub hosts the game locally. Poki metadata is optional and must not
+        // block the local SWF or keep the preloader waiting when offline.
+        return Promise.resolve({
+            thumb: 'badicecream.png',
+            title: 'Bad Ice Cream'
         });
     }
 
