@@ -20,6 +20,7 @@
 	<script src="patch/js/poki-sdk.js?v=2"></script>
 	<script type="text/javascript" src="./js/loader.js"></script>
 	<script type="text/javascript" src="./js/virtualJoystickSkinMod.js"></script>
+	<script type="text/javascript" src="./js/gamehub-mobile-controls.js"></script>
 	<script type="text/javascript" src="./preloader/nitromePreloader.js"></script>
 	<style>
 		* {
@@ -49,7 +50,7 @@
 
 		#splash__image {
 			position: absolute;
-			background-size: contain;
+			background-size: 72% auto;
 			background-position: center;
 			background-repeat: no-repeat;
 			background-image: url("assets/badicecream_splash.jpg");
@@ -60,6 +61,41 @@
 
 		#progress__root {
 			position: absolute;
+		}
+
+		@media (max-width: 700px) {
+			#splash__image { background-size: 66% auto; }
+		}
+
+		#gamehub-mobile-controls {
+			position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+			font-family: Arial, sans-serif;
+		}
+		.gamehub-touch-key, .gamehub-touch-mode {
+			border: 1px solid rgba(255,255,255,.35); color: #fff;
+			background: rgba(20, 28, 42, .62); box-shadow: 0 2px 8px rgba(0,0,0,.28);
+			touch-action: none; user-select: none; -webkit-user-select: none;
+		}
+		.gamehub-touch-key { position: absolute; width: clamp(34px, 8vw, 52px); height: clamp(34px, 8vw, 52px);
+			border-radius: 11px; font-size: clamp(15px, 3.5vw, 22px); font-weight: 700; pointer-events: auto;
+		}
+		.gamehub-touch-key.pressed { background: rgba(70, 150, 220, .9); transform: scale(.94); }
+		.gamehub-touch-cluster { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); width: 135px; height: 105px; pointer-events: none; }
+		.gamehub-touch-cluster.left { left: 14px; }
+		.gamehub-touch-cluster.right { right: 14px; }
+		.gamehub-touch-cluster .left { left: 0; top: 36px; }
+		.gamehub-touch-cluster .right { right: 0; top: 36px; }
+		.gamehub-touch-cluster .up { left: 42px; top: 0; }
+		.gamehub-touch-cluster .down { left: 42px; bottom: 0; }
+		.gamehub-touch-action { width: clamp(42px, 9vw, 58px); height: clamp(32px, 7vw, 46px); border-radius: 12px;
+			font-size: clamp(10px, 2.4vw, 14px); pointer-events: auto; }
+		.gamehub-touch-action.left { left: 154px; bottom: max(82px, calc(env(safe-area-inset-bottom) + 64px)); }
+		.gamehub-touch-action.right { right: 154px; bottom: max(82px, calc(env(safe-area-inset-bottom) + 64px)); }
+		.gamehub-touch-mode { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 10px; z-index: 2;
+			padding: 5px 8px; border-radius: 8px; font-size: 11px; pointer-events: auto; opacity: .72; }
+		@media (max-width: 520px) {
+			.gamehub-touch-cluster.left { left: 8px; } .gamehub-touch-cluster.right { right: 8px; }
+			.gamehub-touch-action.left { left: 136px; } .gamehub-touch-action.right { right: 136px; }
 		}
 
 		#progress__line {
