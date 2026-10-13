@@ -8,6 +8,7 @@
   };
   const held = new Map();
   let player = null;
+  let gameReady = false;
 
   function emit(type, code) {
     if (player && typeof player.triggerKeyEvent === 'function') { player.triggerKeyEvent(type, code); return; }
@@ -44,6 +45,20 @@
     root.querySelectorAll('.player-1').forEach(el=>el.classList.toggle('player-dead',parts[3]==='dead'));
     root.querySelectorAll('.player-2').forEach(el=>el.classList.toggle('player-dead',parts[4]==='dead'));
   };
+  window.gameHubBadIceCreamGameReady = () => { gameReady = true; };
+  const showFallbackControls = (event) => {
+    if (!gameReady || document.getElementById('gamehub-mobile-controls')) return;
+    const target = event.target;
+    if (target && (target.tagName === 'CANVAS' || target.closest?.('canvas'))) {
+      // If AwayFL does not expose ExternalInterface, the first touch inside the
+      // already-loaded game is the reliable phase boundary. Start with 2P so
+      // both players are immediately playable; the real callback can narrow it
+      // to 1P whenever the runtime provides it.
+      build('2p');
+    }
+  };
+  document.addEventListener('pointerdown', showFallbackControls, true);
+  document.addEventListener('touchstart', showFallbackControls, true);
   document.addEventListener('pointermove',e=>{const active=held.get(e.pointerId);if(!active)return;const over=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.gamehub-key');if(over&&over!==active.el&&!over.classList.contains('p1-action')&&!over.classList.contains('p2-action'))press(e.pointerId,over);},{passive:true});
   document.addEventListener('pointerup',e=>release(e.pointerId),true); document.addEventListener('pointercancel',e=>release(e.pointerId),true); window.addEventListener('pagehide',()=>[...held.keys()].forEach(release));
   document.addEventListener('tOCParsed',e=>{player=e.skinner?.target||null},{once:true});

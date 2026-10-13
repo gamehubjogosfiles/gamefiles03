@@ -183,7 +183,7 @@ config = {
         {
             "name": "BadIceCream1_sdk",
             "path": "assets/BadIceCream1_sdk.swf",
-            "size": 1937690,
+            "size": 1938117,
             "resourceType": "GAME"
         }
     ],
@@ -210,8 +210,9 @@ config = {
 					});
 					window.nitromePreloaderSetProgress(fill/1.0);
 				}, (instance) => {
-					PokiSDK.gameLoadingFinished();
-					window.nitromePreloaderSetComplete();
+						PokiSDK.gameLoadingFinished();
+						window.nitromePreloaderSetComplete();
+						window.gameHubBadIceCreamGameReady?.();
 
 				})
 
