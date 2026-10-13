@@ -9,6 +9,7 @@
   const held = new Map();
   let player = null;
   let gameReady = false;
+  let selectedMode = '1p';
 
   function emit(type, code) {
     if (player && typeof player.triggerKeyEvent === 'function') { player.triggerKeyEvent(type, code); return; }
@@ -28,33 +29,42 @@
   function build(mode) {
     let root=document.getElementById('gamehub-mobile-controls');
     if(!root){ root=document.createElement('div'); root.id='gamehub-mobile-controls'; root.innerHTML='<div class="gamehub-controls-canvas"></div>'; document.body.appendChild(root); }
-    root.dataset.mode=mode;
+    selectedMode = mode === '2p' ? '2p' : '1p';
+    root.dataset.mode=selectedMode;
     if(!root.dataset.built){
       const stage=root.firstElementChild, img=n=>`assets/gamehub-controls/${n}.png`;
       button(stage,'p1-action',keyMap.p1.action,'Player 1 action',img('p1-enter'),1); button(stage,'p1-up',keyMap.p1.up,'Player 1 up',img('p1-up'),1); button(stage,'p1-left',keyMap.p1.left,'Player 1 left',img('p1-left'),1); button(stage,'p1-down',keyMap.p1.down,'Player 1 down',img('p1-down'),1); button(stage,'p1-right',keyMap.p1.right,'Player 1 right',img('p1-right'),1);
       button(stage,'p2-action',keyMap.p2.action,'Player 2 action',img('p2-space'),2); button(stage,'p2-up',keyMap.p2.up,'Player 2 up',img('p2-up'),2); button(stage,'p2-left',keyMap.p2.left,'Player 2 left',img('p2-left'),2); button(stage,'p2-down',keyMap.p2.down,'Player 2 down',img('p2-down'),2); button(stage,'p2-right',keyMap.p2.right,'Player 2 right',img('p2-right'),2);
       root.dataset.built='1';
     }
+    root.querySelectorAll('.player-2').forEach(el=>el.hidden=selectedMode!=='2p');
+    root.querySelectorAll('.gamehub-mode-button').forEach(el=>el.classList.toggle('selected', el.dataset.mode===selectedMode));
+  }
+  function ensureModePicker(root) {
+    if (root.querySelector('.gamehub-mode-picker')) return;
+    const picker=document.createElement('div'); picker.className='gamehub-mode-picker';
+    picker.innerHTML='<button type="button" class="gamehub-mode-button selected" data-mode="1p">1P</button><button type="button" class="gamehub-mode-button" data-mode="2p">2P</button>';
+    picker.addEventListener('pointerdown',e=>e.stopPropagation(),{passive:false});
+    picker.querySelectorAll('.gamehub-mode-button').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();build(btn.dataset.mode);},false));
+    root.appendChild(picker);
   }
   window.gameHubBadIceCreamState = (state) => {
     const parts=String(state||'').split('|'); if(parts[0]!=='badicecream') return;
     const phase=parts[1], mode=parts[2]==='2'?'2p':'1p';
     if(phase!=='game'){ document.getElementById('gamehub-mobile-controls')?.remove(); return; }
-    build(mode); const root=document.getElementById('gamehub-mobile-controls');
-    root.querySelectorAll('.player-2').forEach(el=>el.hidden=mode!=='2p');
+    build(mode); const root=document.getElementById('gamehub-mobile-controls'); ensureModePicker(root);
     root.querySelectorAll('.player-1').forEach(el=>el.classList.toggle('player-dead',parts[3]==='dead'));
     root.querySelectorAll('.player-2').forEach(el=>el.classList.toggle('player-dead',parts[4]==='dead'));
   };
-  window.gameHubBadIceCreamGameReady = () => { gameReady = true; };
+  window.gameHubBadIceCreamGameReady = () => { gameReady = true; build(selectedMode); ensureModePicker(document.getElementById('gamehub-mobile-controls')); };
   const showFallbackControls = (event) => {
     if (!gameReady || document.getElementById('gamehub-mobile-controls')) return;
     const target = event.target;
     if (target && (target.tagName === 'CANVAS' || target.closest?.('canvas'))) {
       // If AwayFL does not expose ExternalInterface, the first touch inside the
-      // already-loaded game is the reliable phase boundary. Start with 2P so
-      // both players are immediately playable; the real callback can narrow it
-      // to 1P whenever the runtime provides it.
-      build('2p');
+      // already-loaded game is the reliable phase boundary. Keep 1P as default;
+      // the visible picker lets the player switch to the 2P layout at any time.
+      build(selectedMode); ensureModePicker(document.getElementById('gamehub-mobile-controls'));
     }
   };
   document.addEventListener('pointerdown', showFallbackControls, true);

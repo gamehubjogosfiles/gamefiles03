@@ -77,6 +77,9 @@
 		.gamehub-key { position: absolute; display: block; padding: 0; border: 0; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
 		.gamehub-key.pressed { filter: brightness(.68) drop-shadow(0 1px 1px rgba(0,0,0,.45)); transform: scale(.96); }
 		.gamehub-key.player-dead { opacity: .3; filter: grayscale(1) brightness(.55); pointer-events: none; }
+		.gamehub-mode-picker { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; gap: 5px; padding: 4px; border-radius: 8px; background: rgba(0,0,0,.62); pointer-events: auto; z-index: 2; }
+		.gamehub-mode-button { min-width: 42px; height: 30px; border: 1px solid rgba(255,255,255,.55); border-radius: 5px; background: rgba(255,255,255,.18); color: #fff; font: 700 13px Arial,sans-serif; touch-action: manipulation; }
+		.gamehub-mode-button.selected { background: #f4c542; color: #171717; border-color: #ffe58a; }
 		.p1-action, .p2-action { top: 244px; width: 236px; height: 128px; }
 		.p1-action { left: 41px; } .p2-action { right: 41px; }
 		.p1-up, .p2-up { top: 395px; width: 109px; height: 115px; }
