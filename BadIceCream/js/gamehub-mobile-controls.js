@@ -32,9 +32,11 @@
     selectedMode = mode === '2p' ? '2p' : '1p';
     root.dataset.mode=selectedMode;
     if(!root.dataset.built){
-      const stage=root.firstElementChild, img=n=>`assets/gamehub-controls/${n}.png`;
-      button(stage,'p1-action',keyMap.p1.action,'Player 1 action',img('p1-enter'),1); button(stage,'p1-up',keyMap.p1.up,'Player 1 up',img('p1-up'),1); button(stage,'p1-left',keyMap.p1.left,'Player 1 left',img('p1-left'),1); button(stage,'p1-down',keyMap.p1.down,'Player 1 down',img('p1-down'),1); button(stage,'p1-right',keyMap.p1.right,'Player 1 right',img('p1-right'),1);
-      button(stage,'p2-action',keyMap.p2.action,'Player 2 action',img('p2-space'),2); button(stage,'p2-up',keyMap.p2.up,'Player 2 up',img('p2-up'),2); button(stage,'p2-left',keyMap.p2.left,'Player 2 left',img('p2-left'),2); button(stage,'p2-down',keyMap.p2.down,'Player 2 down',img('p2-down'),2); button(stage,'p2-right',keyMap.p2.right,'Player 2 right',img('p2-right'),2);
+      const stage=root.querySelector('.gamehub-controls-canvas'), img=n=>`assets/gamehub-controls/${n}.png`;
+      stage.innerHTML='<div class="gamehub-player-group player-1-group"></div><div class="gamehub-player-group player-2-group player-2"></div>';
+      const p1=stage.querySelector('.player-1-group'), p2=stage.querySelector('.player-2-group');
+      button(p1,'p1-action',keyMap.p1.action,'Player 1 action',img('p1-enter'),1); button(p1,'p1-up',keyMap.p1.up,'Player 1 up',img('p1-up'),1); button(p1,'p1-left',keyMap.p1.left,'Player 1 left',img('p1-left'),1); button(p1,'p1-down',keyMap.p1.down,'Player 1 down',img('p1-down'),1); button(p1,'p1-right',keyMap.p1.right,'Player 1 right',img('p1-right'),1);
+      button(p2,'p2-action',keyMap.p2.action,'Player 2 action',img('p2-space'),2); button(p2,'p2-up',keyMap.p2.up,'Player 2 up',img('p2-up'),2); button(p2,'p2-left',keyMap.p2.left,'Player 2 left',img('p2-left'),2); button(p2,'p2-down',keyMap.p2.down,'Player 2 down',img('p2-down'),2); button(p2,'p2-right',keyMap.p2.right,'Player 2 right',img('p2-right'),2);
       root.dataset.built='1';
     }
     root.querySelectorAll('.player-2').forEach(el=>el.hidden=selectedMode!=='2p');
