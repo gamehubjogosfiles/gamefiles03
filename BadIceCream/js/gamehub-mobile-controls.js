@@ -1,118 +1,103 @@
 (() => {
-  const mobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
-  if (!mobile) return;
+  const isTouch = navigator.maxTouchPoints > 0 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isTouch) return;
 
-  // Controls used by the original Bad Ice Cream SWF.
-  const keys = {
+  const keyMap = {
     p1: { left: 37, right: 39, up: 38, down: 40, action: 13 },
-    p2: { left: 65, right: 68, up: 87, down: 83, action: 189 },
+    p2: { left: 65, right: 68, up: 87, down: 83, action: 32 },
   };
-  const art = {
-    left: 'assets/gamehub-controls/p1-left.png', right: 'assets/gamehub-controls/p1-right.png',
-    up: 'assets/gamehub-controls/p1-up.png', down: 'assets/gamehub-controls/p1-down.png',
-    p1Action: 'assets/gamehub-controls/p1-enter.png', p2Action: 'assets/gamehub-controls/p2-minus.png',
-    p2Left: 'assets/gamehub-controls/p2-a.png', p2Right: 'assets/gamehub-controls/p2-d.png',
-    p2Up: 'assets/gamehub-controls/p2-w.png', p2Down: 'assets/gamehub-controls/p2-s.png',
-  };
-  let target = null;
-  let mode = null;
-  let menuClicks = 0;
-  let keyboardMode = '1p';
-  const held = new Map(); // pointerId -> { element, code }
+  let player = null;
+  let gameClicks = 0;
+  const held = new Map();
 
-  const send = (type, code) => {
-    if (target && typeof target.triggerKeyEvent === 'function') {
-      target.triggerKeyEvent(type, code);
+  function emit(type, code) {
+    if (player && typeof player.triggerKeyEvent === 'function') {
+      player.triggerKeyEvent(type, code);
       return;
     }
-    const names = {13:['Enter','Enter'],37:['ArrowLeft','ArrowLeft'],38:['ArrowUp','ArrowUp'],39:['ArrowRight','ArrowRight'],40:['ArrowDown','ArrowDown'],65:['a','KeyA'],68:['d','KeyD'],83:['s','KeyS'],87:['w','KeyW'],189:['-','Minus']};
-    const [key, codeName] = names[code] || ['', ''];
-    const event = new KeyboardEvent(type, { key, code: codeName, bubbles: true, cancelable: true });
-    Object.defineProperty(event, 'keyCode', { get: () => code });
-    Object.defineProperty(event, 'which', { get: () => code });
+    const info = {
+      13: ['Enter', 'Enter'], 32: [' ', 'Space'], 37: ['ArrowLeft', 'ArrowLeft'],
+      38: ['ArrowUp', 'ArrowUp'], 39: ['ArrowRight', 'ArrowRight'], 40: ['ArrowDown', 'ArrowDown'],
+      65: ['a', 'KeyA'], 68: ['d', 'KeyD'], 83: ['s', 'KeyS'], 87: ['w', 'KeyW'],
+    }[code] || ['', ''];
+    const event = new KeyboardEvent(type, { key: info[0], code: info[1], bubbles: true, cancelable: true });
+    Object.defineProperties(event, { keyCode: { get: () => code }, which: { get: () => code } });
     window.dispatchEvent(event); document.dispatchEvent(event);
-  };
-  const releasePointer = (pointerId) => {
+  }
+
+  function release(pointerId) {
     const item = held.get(pointerId);
     if (!item) return;
-    send('keyup', item.code);
-    item.element.classList.remove('pressed');
+    emit('keyup', item.code);
+    item.el.classList.remove('pressed');
     held.delete(pointerId);
-  };
-  const pressPointer = (pointerId, element) => {
-    const code = Number(element.dataset.key);
-    if (!code) return;
-    const previous = held.get(pointerId);
-    if (previous?.element === element) return;
-    releasePointer(pointerId);
-    held.set(pointerId, { element, code });
-    send('keydown', code);
-    element.classList.add('pressed');
-  };
+  }
 
-  const makeKey = (root, className, label, code, image) => {
+  function press(pointerId, el) {
+    const code = Number(el.dataset.key);
+    if (!code) return;
+    release(pointerId);
+    held.set(pointerId, { el, code });
+    emit('keydown', code);
+    el.classList.add('pressed');
+  }
+
+  function button(root, cls, code, label, image) {
     const el = document.createElement('button');
-    el.type = 'button'; el.className = `gamehub-key ${className}`; el.dataset.key = code; el.dataset.direction = label;
+    el.type = 'button'; el.className = `gamehub-key ${cls}`; el.dataset.key = code;
     el.setAttribute('aria-label', label); el.style.backgroundImage = `url("${image}")`;
-    el.addEventListener('pointerdown', (event) => { event.preventDefault(); event.stopPropagation(); el.setPointerCapture?.(event.pointerId); pressPointer(event.pointerId, el); }, { passive: false });
-    el.addEventListener('pointerup', (event) => { event.preventDefault(); releasePointer(event.pointerId); }, { passive: false });
-    el.addEventListener('pointercancel', (event) => releasePointer(event.pointerId), { passive: false });
+    el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); press(e.pointerId, el); }, { passive: false });
+    el.addEventListener('pointerup', e => { e.preventDefault(); release(e.pointerId); }, { passive: false });
+    el.addEventListener('pointercancel', e => release(e.pointerId), { passive: false });
     root.appendChild(el);
     return el;
-  };
+  }
 
-  const buildControls = () => {
-    if (!mode || document.getElementById('gamehub-mobile-controls')) return;
-    const root = document.createElement('div'); root.id = 'gamehub-mobile-controls'; root.dataset.mode = mode;
-    const p1 = document.createElement('div'); p1.className = 'gamehub-player-controls p1-controls';
-    makeKey(p1, 'key-left', 'left', keys.p1.left, art.left); makeKey(p1, 'key-right', 'right', keys.p1.right, art.right);
-    makeKey(p1, 'key-up', 'up', keys.p1.up, art.up); makeKey(p1, 'key-down', 'down', keys.p1.down, art.down);
-    makeKey(p1, 'key-action', 'action', keys.p1.action, art.p1Action); root.appendChild(p1);
-    if (mode === '2p') {
-      const p2 = document.createElement('div'); p2.className = 'gamehub-player-controls p2-controls';
-      makeKey(p2, 'key-left', 'left', keys.p2.left, art.p2Left); makeKey(p2, 'key-right', 'right', keys.p2.right, art.p2Right);
-      makeKey(p2, 'key-up', 'up', keys.p2.up, art.p2Up); makeKey(p2, 'key-down', 'down', keys.p2.down, art.p2Down);
-      makeKey(p2, 'key-action', 'action', keys.p2.action, art.p2Action); root.appendChild(p2);
-    }
+  function build() {
+    if (document.getElementById('gamehub-mobile-controls')) return;
+    const root = document.createElement('div');
+    root.id = 'gamehub-mobile-controls';
+    root.innerHTML = '<div class="gamehub-controls-canvas"></div>';
+    const stage = root.firstElementChild;
+    const img = (name) => `assets/gamehub-controls/${name}.png`;
+
+    button(stage, 'p1-action', keyMap.p1.action, 'Player 1 action', img('p1-enter'));
+    button(stage, 'p1-up', keyMap.p1.up, 'Player 1 up', img('p1-up'));
+    button(stage, 'p1-left', keyMap.p1.left, 'Player 1 left', img('p1-left'));
+    button(stage, 'p1-down', keyMap.p1.down, 'Player 1 down', img('p1-down'));
+    button(stage, 'p1-right', keyMap.p1.right, 'Player 1 right', img('p1-right'));
+    button(stage, 'p2-action', keyMap.p2.action, 'Player 2 action', img('p2-space'));
+    button(stage, 'p2-up', keyMap.p2.up, 'Player 2 up', img('p2-up'));
+    button(stage, 'p2-left', keyMap.p2.left, 'Player 2 left', img('p2-left'));
+    button(stage, 'p2-down', keyMap.p2.down, 'Player 2 down', img('p2-down'));
+    button(stage, 'p2-right', keyMap.p2.right, 'Player 2 right', img('p2-right'));
     document.body.appendChild(root);
-  };
+  }
 
-  // The SWF has two menu clicks: PLAY, then 1 PLAYER / 2 PLAYERS.
-  // The second click's horizontal position identifies the selected mode.
-  const observeMenuSelection = (event) => {
-    if (mode || event.target.closest?.('#gamehub-mobile-controls')) return;
-    if (event.type === 'keydown') {
-      if (event.key === 'ArrowRight' || event.keyCode === 39) keyboardMode = '2p';
-      if (event.key === 'ArrowLeft' || event.keyCode === 37) keyboardMode = '1p';
-      if (event.key === 'Enter' || event.keyCode === 13) menuClicks++;
-      if (menuClicks >= 2) { mode = keyboardMode; setTimeout(buildControls, 850); }
-      return;
+  // No controls are rendered during the launcher/menu. Bad Ice Cream uses
+  // three stage clicks: open menu, PLAY, then 1P/2P. The third click is the
+  // actual player selection, so the same complete layout is shown afterwards.
+  function observeStart(e) {
+    if (document.getElementById('gamehub-mobile-controls') || !window.AVMPlayerPoki) return;
+    if (e.type === 'keydown') {
+      if (e.key === 'Enter' || e.keyCode === 13) gameClicks++;
+    } else if (e.type === 'pointerup' && !e.target.closest?.('#gamehub-mobile-controls')) {
+      gameClicks++;
     }
-    if (event.type === 'pointerup' && window.AVMPlayerPoki && !event.target.closest?.('#gamehub-mobile-controls')) {
-      menuClicks++;
-      // The first tap opens the main menu, the second taps PLAY, and the
-      // third selects 1 PLAYER or 2 PLAYERS. Do not cover either menu.
-      if (menuClicks >= 3) {
-        const rect = document.querySelector('canvas')?.getBoundingClientRect() || { left: 0, width: window.innerWidth };
-        mode = (event.clientX - rect.left) < rect.width / 2 ? '1p' : '2p';
-        setTimeout(buildControls, 850);
-      }
-    }
-  };
-  document.addEventListener('pointerup', observeMenuSelection, true);
-  document.addEventListener('keydown', observeMenuSelection, true);
+    if (gameClicks >= 3) setTimeout(build, 500);
+  }
+  document.addEventListener('pointerup', observeStart, true);
+  document.addEventListener('keydown', observeStart, true);
 
-  // Sliding over another directional key changes direction without lifting the finger.
-  document.addEventListener('pointermove', (event) => {
-    const item = held.get(event.pointerId);
-    if (!item) return;
-    const under = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('.gamehub-key');
-    if (under && under !== item.element && under.dataset.direction !== 'action') pressPointer(event.pointerId, under);
+  // Dragging from one directional key to another changes direction without
+  // requiring the player to lift their finger.
+  document.addEventListener('pointermove', e => {
+    const active = held.get(e.pointerId);
+    if (!active) return;
+    const over = document.elementFromPoint(e.clientX, e.clientY)?.closest?.('.gamehub-key');
+    if (over && over !== active.el && !over.classList.contains('p1-action') && !over.classList.contains('p2-action')) press(e.pointerId, over);
   }, { passive: true });
-  document.addEventListener('pointerup', (event) => releasePointer(event.pointerId), true);
-  document.addEventListener('pointercancel', (event) => releasePointer(event.pointerId), true);
-  window.addEventListener('pagehide', () => [...held.keys()].forEach(releasePointer));
-
-  // The runtime target is optional; the bubbling KeyboardEvent fallback also works for this SWF.
-  document.addEventListener('tOCParsed', (event) => { target = event.skinner?.target || null; }, { once: true });
+  document.addEventListener('pointerup', e => release(e.pointerId), true);
+  document.addEventListener('pointercancel', e => release(e.pointerId), true);
+  window.addEventListener('pagehide', () => [...held.keys()].forEach(release));
 })();

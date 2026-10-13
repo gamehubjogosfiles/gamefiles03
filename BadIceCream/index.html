@@ -67,20 +67,19 @@
 			#splash__image { background-size: 66% auto; }
 		}
 
-		#gamehub-mobile-controls { position: fixed; inset: 0; z-index: 1000; pointer-events: none; }
-		.gamehub-player-controls { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); width: min(36vw, 330px); height: min(27vw, 240px); pointer-events: none; }
-		.p1-controls { left: max(8px, 2vw); }
-		.p2-controls { right: max(8px, 2vw); }
-		.gamehub-key { position: absolute; display: block; padding: 0; border: 0; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; filter: drop-shadow(0 2px 1px rgba(0,0,0,.28)); pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
-		.gamehub-key.pressed { filter: brightness(.72) drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: scale(.95); }
-		.p1-controls .key-action, .p2-controls .key-action { top: 0; width: 44%; height: 30%; }
-		.p1-controls .key-action { left: 0; }
-		.p2-controls .key-action { right: 0; }
-		.p1-controls .key-up, .p2-controls .key-up { top: 30%; left: 35%; width: 28%; height: 30%; }
-		.p1-controls .key-left, .p2-controls .key-left { top: 60%; left: 0; width: 28%; height: 38%; }
-		.p1-controls .key-down, .p2-controls .key-down { top: 60%; left: 35%; width: 28%; height: 38%; }
-		.p1-controls .key-right, .p2-controls .key-right { top: 60%; right: 0; width: 29%; height: 38%; }
-		@media (max-width: 600px) and (orientation: portrait) { .gamehub-player-controls { width: min(43vw, 270px); height: min(33vw, 205px); } }
+		#gamehub-mobile-controls { position: fixed; inset: 0; z-index: 1000; pointer-events: none; overflow: hidden; }
+		.gamehub-controls-canvas { position: absolute; left: 50%; top: 50%; width: 1600px; height: 738px; transform: translate(-50%, -50%) scale(var(--gamehub-control-scale, 1)); transform-origin: center; pointer-events: none; }
+		.gamehub-key { position: absolute; display: block; padding: 0; border: 0; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+		.gamehub-key.pressed { filter: brightness(.68) drop-shadow(0 1px 1px rgba(0,0,0,.45)); transform: scale(.96); }
+		.p1-action, .p2-action { top: 244px; width: 236px; height: 128px; }
+		.p1-action { left: 41px; } .p2-action { right: 41px; }
+		.p1-up, .p2-up { top: 395px; width: 109px; height: 115px; }
+		.p1-up { left: 164px; } .p2-up { right: 204px; }
+		.p1-left, .p1-down, .p1-right, .p2-left, .p2-down, .p2-right { top: 527px; width: 109px; height: 115px; }
+		.p1-left { left: 41px; } .p1-down { left: 164px; } .p1-right { left: 287px; }
+		.p2-left { right: 328px; } .p2-down { right: 205px; } .p2-right { right: 82px; }
+		@media (orientation: landscape) { #gamehub-mobile-controls { --gamehub-control-scale: min(100vw / 1600, 100vh / 738); } }
+		@media (orientation: portrait) { #gamehub-mobile-controls { --gamehub-control-scale: min(100vw / 1600, 100vh / 738); } }
 
 		#progress__line {
 			width: 0;
