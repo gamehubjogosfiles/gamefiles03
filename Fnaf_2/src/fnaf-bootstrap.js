@@ -32,9 +32,11 @@
   const getEntry = (zip, requested) => {
     const key = requested.replace(/^.*[\\/]/, '').toLowerCase();
     const names = Object.keys(zip.files);
+    const numeric = key.match(/^(\d+)$/);
     const name = names.find(n => n.toLowerCase() === requested.toLowerCase()) ||
       names.find(n => n.toLowerCase().endsWith('/' + key)) ||
-      names.find(n => n.split('/').pop().toLowerCase() === key);
+      names.find(n => n.split('/').pop().toLowerCase() === key) ||
+      (numeric && names.find(n => new RegExp('\\.cc' + numeric[1] + '$', 'i').test(n)));
     return name ? zip.files[name] : null;
   };
   const installZipXHR = (zip) => {
@@ -123,12 +125,54 @@
       getResponseHeader(name) { return name.toLowerCase() === 'content-type' ? makeType(this.__url) : null; }
       getAllResponseHeaders() { return 'Content-Type: ' + makeType(this.__url) + ' ' + String.fromCharCode(13, 10); }
       setRequestHeader() {}
+      overrideMimeType() {}
     }
     const XHR = function() {
-      return isResource(arguments[0]) ? new ZipXHR() : new NativeXHR();
+      return new ZipXHR();
     };
     XHR.UNSENT = 0; XHR.OPENED = 1; XHR.HEADERS_RECEIVED = 2; XHR.LOADING = 3; XHR.DONE = 4;
     window.XMLHttpRequest = XHR;
+    const installZipMedia = () => {
+      const imageDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+      const mediaDescriptor = typeof HTMLMediaElement !== 'undefined' ? Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src') : null;
+      const resolveAsset = (value) => {
+        try {
+          const url = new URL(value, location.href);
+          if (!url.pathname.toLowerCase().includes('/resources/')) return null;
+          return getEntry(zip, url.pathname.replace(/^.*\/resources\//i, ''));
+        } catch (_) { return null; }
+      };
+      const loadBlobURL = (element, setter, value) => {
+        const entry = resolveAsset(value);
+        if (!entry) { setter.call(element, value); return; }
+        entry.async('blob').then(blob => {
+          if (element.__gamehubAssetRequest === value) setter.call(element, URL.createObjectURL(blob));
+        }).catch(() => {});
+      };
+      if (imageDescriptor?.set) {
+        Object.defineProperty(HTMLImageElement.prototype, 'src', {
+          configurable: imageDescriptor.configurable,
+          enumerable: imageDescriptor.enumerable,
+          get: imageDescriptor.get,
+          set(value) {
+            this.__gamehubAssetRequest = String(value);
+            loadBlobURL(this, imageDescriptor.set, String(value));
+          }
+        });
+      }
+      if (mediaDescriptor?.set) {
+        Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+          configurable: mediaDescriptor.configurable,
+          enumerable: mediaDescriptor.enumerable,
+          get: mediaDescriptor.get,
+          set(value) {
+            this.__gamehubAssetRequest = String(value);
+            loadBlobURL(this, mediaDescriptor.set, String(value));
+          }
+        });
+      }
+    };
+    installZipMedia();
   };
   const startRuntime = () => {
     const script = document.createElement('script');
