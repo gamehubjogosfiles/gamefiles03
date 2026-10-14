@@ -39,41 +39,96 @@
   };
   const installZipXHR = (zip) => {
     const NativeXHR = window.XMLHttpRequest;
-    const nativeOpen = NativeXHR.prototype.open;
-    const nativeSend = NativeXHR.prototype.send;
     const isResource = (url) => {
       try { return new URL(url, location.href).pathname.toLowerCase().includes('/resources/'); }
       catch (_) { return String(url).toLowerCase().includes('resources/'); }
     };
-    NativeXHR.prototype.open = function(method, url, async, user, password) {
-      this.__gamehubUrl = String(url);
-      this.__gamehubLocal = isResource(url);
-      if (!this.__gamehubLocal) return nativeOpen.call(this, method, url, async, user, password);
-      this.__gamehubMethod = method; this.__gamehubAsync = async !== false;
-      this.readyState = 1;
+    const makeType = (requested) => {
+      const lower = requested.toLowerCase();
+      if (lower.endsWith('.png')) return 'image/png';
+      if (lower.endsWith('.gif')) return 'image/gif';
+      if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+      if (lower.endsWith('.ogg')) return 'audio/ogg';
+      if (lower.endsWith('.mp3')) return 'audio/mpeg';
+      if (lower.endsWith('.wav')) return 'audio/wav';
+      return 'application/octet-stream';
     };
-    NativeXHR.prototype.send = function(body) {
-      if (!this.__gamehubLocal) return nativeSend.call(this, body);
-      const request = this;
-      const requested = this.__gamehubUrl.split('?')[0].replace(/^.*\/resources\//i, '');
-      const entry = getEntry(zip, requested);
-      if (!entry) { setTimeout(() => { request.status = 404; request.readyState = 4; request.onerror?.(new Error('Missing ' + requested)); request.onreadystatechange?.(); }, 0); return; }
-      entry.async('arraybuffer').then(buffer => {
-        const type = requested.toLowerCase().endsWith('.png') ? 'image/png' :
-          requested.toLowerCase().endsWith('.gif') ? 'image/gif' :
-          requested.toLowerCase().endsWith('.ogg') ? 'audio/ogg' :
-          requested.toLowerCase().endsWith('.mp3') ? 'audio/mpeg' : 'application/octet-stream';
-        const blob = new Blob([buffer], {type});
-        const bytes = new Uint8Array(buffer);
-        let binary = ''; const step = 0x8000;
-        for (let i = 0; i < bytes.length; i += step) binary += String.fromCharCode(...bytes.subarray(i, i + step));
-        try { Object.defineProperty(request, 'status', {value: 200, configurable: true}); } catch (_) { request.status = 200; }
-        try { Object.defineProperty(request, 'response', {value: request.responseType === 'blob' ? blob : buffer, configurable: true}); } catch (_) {}
-        try { Object.defineProperty(request, 'responseText', {value: binary, configurable: true}); } catch (_) {}
-        request.readyState = 4;
-        setTimeout(() => { request.onreadystatechange?.(); request.onload?.(); }, 0);
-      }).catch(fail);
+    const fire = (request, type, event) => {
+      request.dispatchEvent?.(new Event(type));
+      request['on' + type]?.(event || new Event(type));
+      request.onreadystatechange?.(event || new Event(type));
     };
+    class ZipXHR extends EventTarget {
+      constructor() {
+        super();
+        this.readyState = 0;
+        this.status = 0;
+        this.statusText = '';
+        this.response = null;
+        this.responseText = '';
+        this.responseType = '';
+        this.responseURL = '';
+        this.timeout = 0;
+        this.withCredentials = false;
+        this.onload = null;
+        this.onerror = null;
+        this.onprogress = null;
+        this.onreadystatechange = null;
+        this.__url = '';
+      }
+      open(method, url, async = true) {
+        this.__url = String(url);
+        this.__method = method;
+        this.__async = async !== false;
+        this.responseURL = this.__url;
+        this.readyState = 1;
+        fire(this, 'readystatechange');
+      }
+      send() {
+        const request = this;
+        const requested = this.__url.split('?')[0].replace(/^.*\/resources\//i, '');
+        const entry = getEntry(zip, requested);
+        if (!entry) {
+          setTimeout(() => {
+            request.status = 404;
+            request.statusText = 'Not Found';
+            request.readyState = 4;
+            fire(request, 'error', new Error('Missing ' + requested));
+            fire(request, 'readystatechange');
+          }, 0);
+          return;
+        }
+        entry.async('arraybuffer').then(buffer => {
+          const blob = new Blob([buffer], {type: makeType(requested)});
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const step = 0x8000;
+          for (let i = 0; i < bytes.length; i += step) binary += String.fromCharCode(...bytes.subarray(i, i + step));
+          request.status = 200;
+          request.statusText = 'OK';
+          request.response = request.responseType === 'blob' ? blob : buffer;
+          request.responseText = binary;
+          request.readyState = 4;
+          fire(request, 'progress');
+          fire(request, 'readystatechange');
+          fire(request, 'load');
+        }).catch(error => {
+          request.status = 0;
+          request.readyState = 4;
+          fire(request, 'error', error);
+          fire(request, 'readystatechange');
+        });
+      }
+      abort() {}
+      getResponseHeader(name) { return name.toLowerCase() === 'content-type' ? makeType(this.__url) : null; }
+      getAllResponseHeaders() { return 'Content-Type: ' + makeType(this.__url) + ' ' + String.fromCharCode(13, 10); }
+      setRequestHeader() {}
+    }
+    const XHR = function() {
+      return isResource(arguments[0]) ? new ZipXHR() : new NativeXHR();
+    };
+    XHR.UNSENT = 0; XHR.OPENED = 1; XHR.HEADERS_RECEIVED = 2; XHR.LOADING = 3; XHR.DONE = 4;
+    window.XMLHttpRequest = XHR;
   };
   const startRuntime = () => {
     const script = document.createElement('script');
