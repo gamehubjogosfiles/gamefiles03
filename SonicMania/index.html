@@ -163,7 +163,7 @@
 			var spinnerElement = document.getElementById('spinner');
 
 			function reportGameHub(state, message) {
-				if (!window.parent || window.parent === window) return;
+				if (state === 'loading' || !window.parent || window.parent === window) return;
 				try { window.parent.postMessage({ gamehub: 'game-status', state: state, message: String(message || '') }, '*'); } catch (e) {}
 			}
 			function formatMB(bytes) { return (Math.max(0, Number(bytes) || 0) / 1048576).toFixed(1) + ' MB'; }
@@ -178,8 +178,6 @@
 					Module.setStatus = function (text) { if (text && Module.printErr) Module.printErr('[post-error status] ' + text); };
 				}
 			}
-			reportGameHub('loading', 'Loading Sonic Mania files...');
-
 			var Module = {
 				preRun: [],
 				postRun: [],
@@ -245,7 +243,6 @@
 						if (!text) spinnerElement.style.display = 'none';
 					}
 						statusElement.textContent = text;
-						if (text) reportGameHub('loading', text);
 				},
 				totalDependencies: 0,
 				monitorRunDependencies: function (left) {
@@ -277,7 +274,6 @@
                   spinnerElement.hidden = false;
                   spinnerElement.style.display = '';
                   statusElement.textContent = label + ' · ' + formatMB(loaded) + ' / ' + formatMB(total);
-                  reportGameHub('loading', statusElement.textContent);
                 }
                 function fetchPart(url, part, index, attempt, loaded, total, count) {
                   return originalFetch(url, { cache: 'no-store' }).then(function (response) {
