@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sonicmania-local-rsdk-v4';
+const CACHE_NAME = 'sonicmania-local-rsdk-v5';
 const STATIC_FILES = [
   'index.html',
   'RSDKv5.html',

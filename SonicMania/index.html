@@ -141,7 +141,7 @@
 <div class="spinner" id="spinner"></div>
 			<div id="status">Downloading...</div>
 		<progress id="progress" value="0" max="100" hidden="hidden"></progress>
-		<canvas id="canvas" onclick="window.focus();" oncontextmenu="event.preventDefault();"></canvas>
+		<canvas id="canvas" tabindex="-1" onclick="this.focus();" oncontextmenu="event.preventDefault();"></canvas>
 		<textarea id="output" style="display: none;" rows="8"></textarea>
 
 		<script type="text/javascript">

@@ -275,65 +275,101 @@
       }
 
       #pauseMenuContainer {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
 
       #pauseMenuContainer[hidden] {
         display: none !important;
-        opacity: 0;
       }
 
       #pauseMenuBorder {
-        background: linear-gradient(135deg, #FA1E4E, transparent 40%);
+        width: min(100%, 390px);
         padding: 1px;
-        border-radius: 4px;
-        clip-path: polygon(10.5px 0, 100% 0, 100% 100%, 0 100%, 0 10.5px);
-        width: 70vw;
-        max-width: 400px;
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08));
+        box-shadow: 0 18px 54px rgba(0, 0, 0, 0.72);
       }
 
       #pauseMenu {
         display: flex;
         flex-direction: column;
-        padding: 60px 30px 60px 30px;
-        background: linear-gradient(180deg, #2E273F 16.15%, rgba(46, 39, 63, 0.79) 56.25%, #2E273F 91.15%);
-        border-radius: 4px;
-        clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-        animation-name: fadeIn;
-        animation-duration: 0.5s;
+        gap: 12px;
+        padding: clamp(24px, 5vw, 34px);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 17px;
+        background: linear-gradient(180deg, #171717, #080808);
+        animation: fadeIn 0.2s ease-out;
         opacity: 1;
       }
 
+      #pauseMenu h2 {
+        margin: 0;
+        color: #fff;
+        font-family: "Arial Black", Arial, sans-serif;
+        font-size: clamp(1.1rem, 4vw, 1.35rem);
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      #pauseMenu p {
+        margin: 0 0 8px;
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
       #pauseMenu button {
-        font-weight: 500;
-        font-size: 17px;
-        color: white;
-        background: #FA1E4E;
-        border: 1px solid #FA1E4E;
-        border-radius: 6px;
+        min-height: 50px;
         padding: 12px 24px;
-        margin: 5px 0;
+        border: 1px solid #fff;
+        border-radius: 999px;
+        color: #050505;
+        background: #fff;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
         -webkit-user-select: none;
         user-select: none;
+        transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
       }
 
       #pauseMenu button#quitButton {
-        background: #FA1E4E40;
+        border-color: #3a3a3a;
+        color: #eee;
+        background: #151515;
       }
 
       #pauseMenu button:hover {
-        filter: brightness(1.15);
+        background: #f1f1f1;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+        transform: translateY(-1px);
+      }
+
+      #pauseMenu button#quitButton:hover {
+        border-color: #666;
+        color: #fff;
+        background: #222;
+      }
+
+      #pauseMenu button:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 3px;
       }
 
       #pauseMenu button:active {
-        filter: brightness(0.85);
+        transform: scale(0.98);
       }
 
       #pauseMenu button[hidden] {
@@ -349,11 +385,13 @@
       tabindex="-1"
     >
     </canvas>
-    <div id="pauseMenuContainer" hidden>
+    <div id="pauseMenuContainer" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" aria-describedby="pauseDescription" hidden>
       <div id="pauseMenuBorder">
         <div id="pauseMenu">
+          <h2 id="pauseTitle">Game paused</h2>
+          <p id="pauseDescription">The game paused while you were away.</p>
           <button id="resumeButton" onclick="resume()">
-            Resume
+            Resume game
           </button>
           <button id="quitButton" onclick="quitIfSupported()">
             Quit
@@ -743,6 +781,7 @@
         pauseMenu.hidden = true;
         canvasElement.classList.remove("paused");
         canvasElement.classList.add("unpaused");
+        canvasElement.focus({ preventScroll: true });
         enterFullscreenIfSupported();
         lockOrientationIfSupported();
       }
@@ -791,9 +830,13 @@
         outputContainerElement.hidden = true;
       }
 
-      document.addEventListener("visibilitychange", (event) => {
-        if (document.visibilityState != "visible") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible") {
           pause();
+          return;
+        }
+        if (!pauseMenu.hidden) {
+          window.requestAnimationFrame(() => resumeButton.focus({ preventScroll: true }));
         }
       });
 
