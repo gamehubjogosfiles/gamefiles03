@@ -166,6 +166,12 @@
 				if (state === 'loading' || !window.parent || window.parent === window) return;
 				try { window.parent.postMessage({ gamehub: 'game-status', state: state, message: String(message || '') }, '*'); } catch (e) {}
 			}
+			function focusGameCanvas() {
+				var gameCanvas = document.getElementById('canvas');
+				if (!gameCanvas) return;
+				try { gameCanvas.focus({ preventScroll: true }); }
+				catch (e) { gameCanvas.focus(); }
+			}
 			function formatMB(bytes) { return (Math.max(0, Number(bytes) || 0) / 1048576).toFixed(1) + ' MB'; }
 			function showFatalError(error) {
 				var detail = error && error.message ? error.message : String(error || 'Unknown error');
@@ -220,6 +226,8 @@
 						spinnerElement.style.display = 'none';
 						statusElement.textContent = '';
 						reportGameHub('ready', '');
+						focusGameCanvas();
+						requestAnimationFrame(focusGameCanvas);
 					},
 					onAbort: function (reason) { showFatalError('Runtime abort: ' + reason); },
 					setStatus: function (text) {
