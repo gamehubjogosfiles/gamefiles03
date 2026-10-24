@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freddy Fazbear's Pizzeria Simulator</title>
+    <link rel="icon" href="favicon.ico" />
+    <style>
+        html {
+            display: block;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        body {
+            position: relative;
+            background-color: black;
+            background-image: url(resources/office.png);
+            background-position: center;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            height: 100%;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .selection {
+            height: auto;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .launcher-text {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0);
+            bottom: 2.5vh;
+            z-index: 1;
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        .glitch {
+            position: absolute;
+            background-image: url(resources/background.gif);
+            background-position: center;
+            background-size: 50vw;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            opacity: 0.75;
+            z-index: -1;
+        }
+
+        canvas {
+            display: none;
+            user-select: none;
+        }
+
+        #title {
+            position: absolute;
+            top: 10vh;
+            left: 5vw;
+            z-index: 1;
+            height: 20vh;
+        }
+
+        #animatronic {
+            position: absolute;
+            top: -5vh;
+            right: 7vw;
+            height: 120vh;
+        }
+
+        .loader {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            left: 50%;
+            transform: translate(-50%, 0);
+            bottom: 12vh;
+            z-index: 1;
+            color: white;
+            font-family: monospace;
+            text-align: center;
+            font-weight: lighter;
+            width: 85vw;
+        }
+
+        .loader h1 {
+            margin: 0;
+            font-size: 5vw;
+        }
+
+        .loader hr{
+            margin: 0;
+            border: white solid 0.1vw;
+            width: 0%;
+        }
+
+        .loader h2 {
+            margin: 1vh 0;
+            font-size: 1.4vw;
+        }
+    </style>
+
+    
+<!-- Fullscreen is controlled by the GameHub player. -->
+
+
+<style id="gamehub-touch-style">
+  html, body, canvas, img, a, button, input, select, textarea, div {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  *, *::before, *::after { -webkit-tap-highlight-color: transparent !important; }
+  ::selection { background: transparent !important; color: inherit !important; }
+  :focus, :focus-visible, canvas:active, canvas:focus { outline: none !important; box-shadow: none !important; }
+</style>
+</head>
+
+<body>
+    <canvas id="MMFCanvas" width="1920" height="1080"> Your browser does not support Canvas, Please try again.</canvas>
+    <div class="selection" id="selection">
+        <img id="title" src="resources/title.png">
+        <img id="animatronic" src="resources/animatronic.png">
+        <div class="loader">
+            <h1 id="percentage">0%</h1>
+            <hr id="bar">
+            <h2 id="stage">STARTING UP...</h2>
+        </div>
+        <div class="launcher-text"><img src="resources/launcher-text.png" style="width: 45vw;"></div>
+    </div>
+    <div class="glitch"></div>
+    <img src="resources/vignette.png" class="vignette">
+    <script src="src/jszip.min.js"></script>
+    <script>window.__GAMEHUB_FNAF__ = {cch: 'fnafps.cch', parts: 20};</script>
+    <script src="src/fnaf-bootstrap.js"></script>
+</body>
+<!-- GameHub local integration -->
+
+<!-- Fullscreen is controlled by the GameHub player. -->
+
+</html>

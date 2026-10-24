@@ -24,6 +24,9 @@
     if (bar) bar.style.width = value + '%';
     if (stage) stage.textContent = text || 'DOWNLOADING...';
   };
+  const formatBytes = (bytes) => bytes >= 1048576
+    ? (bytes / 1048576).toFixed(1) + ' MB'
+    : Math.max(1, Math.round(bytes / 1024)) + ' KB';
   const fail = (error) => {
     console.error('[GameHub FNAF bootstrap]', error);
     if (stage) stage.textContent = 'ERROR LOADING GAME';
@@ -190,11 +193,33 @@
   const load = async () => {
     setProgress(0, partCount, 'DOWNLOADING RESOURCES...');
     const buffers = [];
+    let totalLoaded = 0;
     for (let i = 1; i <= partCount; i++) {
       const response = await fetch(partBase + i, {cache: 'no-store'});
       if (!response.ok) throw new Error('Resource part ' + i + ' returned HTTP ' + response.status);
-      buffers.push(await response.arrayBuffer());
-      setProgress(i, partCount, 'DOWNLOADING RESOURCES...');
+      const expected = Number(response.headers.get('Content-Length')) || 0;
+      if (response.body && typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
+        const chunks = [];
+        let loaded = 0;
+        while (true) {
+          const result = await reader.read();
+          if (result.done) break;
+          chunks.push(result.value);
+          loaded += result.value.byteLength;
+          const fraction = expected ? Math.min(1, loaded / expected) : 0;
+          setProgress(i - 1 + fraction, partCount,
+            'DOWNLOADING · ' + formatBytes(totalLoaded + loaded));
+        }
+        totalLoaded += loaded;
+        buffers.push(new Blob(chunks, {type: 'application/octet-stream'}));
+      } else {
+        const buffer = await response.arrayBuffer();
+        totalLoaded += buffer.byteLength;
+        buffers.push(buffer);
+      }
+      setProgress(i, partCount,
+        'DOWNLOADING · ' + formatBytes(totalLoaded));
     }
     const archive = new Blob(buffers, {type: 'application/zip'});
     setProgress(partCount, partCount, 'EXTRACTING RESOURCES...');
