@@ -9,7 +9,6 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="TemplateData/style.css">
   <link rel="stylesheet" href="gamehub-loading-theme.css?v=20260830-center">
-  <script src="gamehub-loading-theme.js"></script>
   <script src="TemplateData/UnityProgress.js"></script>
   <script src="Build/UnityLoader.js"></script>
   <style>
@@ -25,8 +24,8 @@
 </head>
 <body>
   <div class="webgl-content"><div id="unityContainer"></div></div>
-  <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;" role="status" aria-live="polite">
-    <div id="status-text">Loading game...</div>
+  <div id="loading-ui" class="gamehub-loading" data-loading-style="haunted" style="--gamehub-load-accent: #d64949;" role="status" aria-live="polite">
+    <div id="status-text">Preparing download</div>
     <div id="bar-container" aria-hidden="true"><div id="bar-fill"></div></div>
     <div id="progress-detail">0.00 MB / 304.68 MB</div>
     <div id="error-box"></div>
@@ -99,7 +98,7 @@
 
     (async () => {
       try {
-        updateProgress('Loading game...');
+        updateProgress('Preparing download');
         const dataUrl = await mergeFiles(getParts('Build/Granny2.data.unityweb', 16), 'Granny2.data.unityweb');
         const originalOpen = XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open = function(method, url, ...rest) {
