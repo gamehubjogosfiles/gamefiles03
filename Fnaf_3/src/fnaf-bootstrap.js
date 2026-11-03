@@ -182,6 +182,7 @@
     script.src = 'src/Runtime.js';
     script.onload = () => {
       if (selection) selection.style.display = 'none';
+      document.body.classList.add('gamehub-playing');
       document.querySelectorAll('.glitch, .vignette').forEach(el => el.style.display = 'none');
       if (canvas) canvas.style.display = 'block';
       try { new window.Runtime('MMFCanvas', 'resources/' + (game.cch || 'FNAF1HTML5.cch')); }
