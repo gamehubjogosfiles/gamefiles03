@@ -1,0 +1,9 @@
+Sonic Mania browser build and runtime package
+
+Source repository: https://github.com/UGBONTOP/Sonic-Mania-InYourBrowser
+Pinned source revision: 4f0a7e1fa05f5c0be3f4fc392a9b7379f840d965
+The upstream page credits the browser-port build to Crunch Arcade.
+
+GameHub integration changes: runtime/data files are hosted locally in this gamefiles repository; Data.data.part0–13 are downloaded and assembled locally by Data.js with byte-level progress; the existing GameHub card and favicon are retained; saves use the browser's IndexedDB filesystem.
+
+The upstream GitHub repository had no declared license when checked on 2026-11-05. The GameHub user explicitly authorized this integration and publication.
